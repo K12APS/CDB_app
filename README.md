@@ -20,15 +20,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-
-
-npx expo install react-native-screens
-npm i react-native-neomorph-shadows@0.0.8
-npm i @react-native-async-storage/async-storage
-npm install react-native-modal-datetime-picker
-npx expo install expo-notifications expo-device expo-constants
-npx expo install expo-font expo-splash-screen
-npx expo install expo-haptics
-npx expo install expo-notifications expo-device expo-constants
-npx expo install expo-mail-composer
-npm install react-native-gesture-handler 
