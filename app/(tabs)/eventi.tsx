@@ -147,7 +147,7 @@ export default function EventiScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scroll}>
+    <ScrollView contentContainerStyle={styles.scroll} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={containerStyle}>
 

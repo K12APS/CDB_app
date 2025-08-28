@@ -86,7 +86,7 @@ export default function CalendarScreen() {
 
     
     return (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <View style={containerStyle}>
 

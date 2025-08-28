@@ -1,4 +1,5 @@
 //TODO AGGIUNGERE CONTROLLO SALVATAGGIO TOKEN NEL BACKEND E GESTIONE NOTIFICHE CON APP CHIUSA
+//!FISSARE IMMAGINE SUPPORTO
 import { Text, View, StyleSheet, TouchableOpacity, Linking, ScrollView, Platform, Image, RefreshControl, useColorScheme, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -345,6 +346,7 @@ export default function Index() {
           <ScrollView
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
+            style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }

@@ -1,13 +1,14 @@
 import { Text, View, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, Modal, useColorScheme, TextInput, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { ScreenContainer, Screen } from 'react-native-screens'; // Importato correttamente
-import { enableScreens } from 'react-native-screens'; // Abilitato react-native-screens
+import { ScreenContainer, Screen } from 'react-native-screens'; 
+import { enableScreens } from 'react-native-screens'; 
 import { useNavigation } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as StoreReview from 'expo-store-review';
+import { Platform } from 'react-native';
 
-// Abilita react-native-screens
 enableScreens();
 
 export default function AboutScreen() {
@@ -62,12 +63,31 @@ export default function AboutScreen() {
     setNameModalVisible(true);
   };
 
+  const askReview = async () => {
+  try {
+    if (await StoreReview.isAvailableAsync()) {
+      await StoreReview.requestReview();
+    }
+  } catch (e) {
+    console.log("Errore:", e);
+  }
+};
+
+
   const saveName = async () => {
     try {
       await AsyncStorage.setItem('userName', tempName);
       setUserName(tempName);
       setNameModalVisible(false);
       Alert.alert('Successo', 'Nome salvato correttamente');
+      //chiedi all'utente se vuole lasciare una recensione sull'app (solo iOS)
+      if (Platform.OS == 'ios') {
+        const reviewAsked = await AsyncStorage.getItem('reviewAsked');  //verifica se ha già risposto alla richiesta
+        if (reviewAsked !== 'true') {
+        await askReview();
+        await AsyncStorage.setItem('reviewAsked', 'true');
+        }
+      }
     } catch (error) {
       console.error('Error saving name:', error);
       Alert.alert('Errore', 'Non è stato possibile salvare il nome');
@@ -110,7 +130,7 @@ export default function AboutScreen() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Screen>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}> 
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
           <View style={containerStyle}>
             {/* <StatusBar style="light" /> */}
 
