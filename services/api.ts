@@ -7,10 +7,9 @@ interface inte{
     size: number;
 }
 export const api = async (size : inte) => {
-    //console.log(size);
     try {
-    const response = await axios.post(`https://${ADDRESS}:${PORT}/api/events`, {
-      page_size: size // Passa il valore desiderato
+    const response = await axios.post(`https://${ADDRESS}:${PORT}/api/events`, {    
+      page_size: size.size // Passa il valore desiderato
     });
     const allEvents: Event[] = response.data;
     //console.log(allEvents);

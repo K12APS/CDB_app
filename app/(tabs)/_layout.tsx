@@ -1,6 +1,6 @@
 import { Tabs} from 'expo-router';
 import { useState, useEffect } from 'react';
-import { View, Linking, TouchableOpacity, useColorScheme, Dimensions} from 'react-native';
+import { View, Linking, TouchableOpacity, useColorScheme, Dimensions, Alert} from 'react-native';
 import { Image } from 'react-native';
 import Animated, { 
   useSharedValue, 
@@ -11,6 +11,8 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Calendar from "expo-calendar";
+import { Platform } from "react-native";
 
 
 const home = require('../../assets/images/home.png');
@@ -26,12 +28,105 @@ const user_focused = require('../../assets/images/user_focused.png');
 const calendar_dark_theme_focused = require('../../assets/images/calendarIcn_focused_dark_theme.png');
 const home_dark_theme_focused = require('../../assets/images/home_focused_dark.png');
 const user_dark_theme_focused = require('../../assets/images/user_focused_dark_theme.png');
+const add_calendar_dark_theme = require('../../assets/images/add_calendar_light.png');
+const add_calendar_light_theme = require('../../assets/images/add_calendar_dark.png');
 
+
+import { api } from '../../services/api';
 
 
 
 
 export default function TabLayout() {
+
+  const addCalendar = async () => {
+
+    const { status } = await Calendar.requestCalendarPermissionsAsync();
+    if (status !== 'granted') {
+        Alert.alert(
+          "Permesso al calendario negato",
+          "Devi abilitare i permessi per il calendario nelle impostazione del telefono.",
+          [
+            {text: "Annulla", style: "cancel"},
+            {text: "Vai alle impostazioni",
+              onPress: () => {
+                if (Platform.OS === 'ios') {
+                  Linking.openURL('app-settings:');
+                } else {
+                  Linking.openSettings();
+                }
+              }
+            }
+          ]
+        )
+        return;
+      }
+
+      
+       const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+
+        
+        for (const cal of calendars) {
+          if (cal.title === "Eventi CoderDojoBrianza") {
+            await Calendar.deleteCalendarAsync(cal.id);
+          }
+        }
+
+      const defaultCalendarSource =
+    Platform.OS === 'ios'
+      ? await getDefaultCalendarSource()
+      : { isLocalAccount: true, name: 'CoderdojoBrianza' };
+
+    // Crea un calendario personalizzato
+  const calendarId = await Calendar.createCalendarAsync({
+    title: "Eventi CoderDojoBrianza",
+    color: "green",
+    entityType: Calendar.EntityTypes.EVENT,
+    sourceId: defaultCalendarSource.id,
+    source: defaultCalendarSource,
+    name: "Eventi CoderDojoBrianza",
+    ownerAccount: "personal",
+    accessLevel: Calendar.CalendarAccessLevel.OWNER,
+  });
+
+  const { events: eventi, error } = await api({ size: 15 });
+  if(error) {
+    console.log(error);
+    Alert.alert("Errore", "Impossibile caricare gli eventi. Riprova più tardi.");
+    return;
+  }
+
+  if(eventi.length === 0) {
+    Alert.alert("Nessun evento", "Non ci sono eventi da aggiungere al calendario.");
+    return;
+  }
+
+  for(const ev of eventi) {
+    try {
+      await Calendar.createEventAsync(calendarId, {
+      title: ev.name.text,
+      startDate: new Date(ev.start.utc),
+      endDate: new Date(ev.end.utc),
+      timeZone: ev.start.timezone,
+      location: ev.venue ? `${ev.venue.address.localized_address_display}` : "Online Event",
+    });
+    } catch (error) {
+      console.log(ev.name.text)
+      console.log("Errore durante la creazione dell'evento:", error);
+    }
+    
+  }
+
+  alert("Eventi aggiunti al calendario!");
+
+  }
+
+  async function getDefaultCalendarSource() {
+  const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+  return defaultCalendar.source;
+}
+
+
   const insets = useSafeAreaInsets();
 
   const colorScheme = useColorScheme();
@@ -146,6 +241,17 @@ export default function TabLayout() {
             },
             tabBarIcon: ({ focused }) => (
               <TabIcon source={ isDark ? (focused ? calendar_dark_theme_focused : calendar_dark_theme) : (focused ? calendar_focused : calendar) } focused={focused} />
+            ),
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={ () => addCalendar()}
+                style={{ marginRight: 15, marginTop: 5 }} 
+              >
+                <Image
+                  source={isDark ? add_calendar_dark_theme : add_calendar_light_theme}
+                  style={{ width: 25, height: 25 }}
+                />
+              </TouchableOpacity>
             ),
             tabBarButton: (props) => (
               <TouchableOpacity
