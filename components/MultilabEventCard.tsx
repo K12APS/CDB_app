@@ -7,9 +7,13 @@ interface MultilabEventCardProps {
   dayEventDate2: number | string;
   monthEventDate2: string;
   Title: string;
+  ticket: string[];
 }
 
-const MultilabEventCard = ({ Link, dayEventDate2, monthEventDate2, Title }: MultilabEventCardProps) => {
+const MultilabEventCard = ({ Link, dayEventDate2, monthEventDate2, Title, ticket }: MultilabEventCardProps) => {
+
+  const ticketMod = ticket.map(t => t.replace(/Scratch\s*/i, '')).join(", ");
+  
 
   const apriLink = () => {
     const url = Link;
@@ -39,8 +43,7 @@ const MultilabEventCard = ({ Link, dayEventDate2, monthEventDate2, Title }: Mult
                     
                     </ShadowBox>
                 </View>
-                {/*//TODO modificare la descrizione con quella ricecuta dalle API */}
-                <Text style={styles.labNext} allowFontScaling={false}>Minecraft, Python, Stampa 3D</Text> 
+                <Text style={[styles.labNext, { flexShrink: 1 }]} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{ticketMod}</Text> 
               </View>
             </TouchableOpacity>
   );

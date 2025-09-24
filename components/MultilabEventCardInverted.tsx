@@ -1,22 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { ShadowBox } from 'react-native-neomorph-shadows';
-
 interface MultilabEventCardProps {
   Link: () => void;
   dayEventDate2: string | number;
   monthEventDate2: string;
   Title: string;
+  ticket: string[];
 }
 
-const MultilabEventCardInverted = ({ Link, dayEventDate2, monthEventDate2, Title }: MultilabEventCardProps) => {
+const MultilabEventCardInverted = ({ Link, dayEventDate2, monthEventDate2, Title, ticket}: MultilabEventCardProps) => {
+
+const maxTicket = 3
+const ticketToShow = ticket.slice(0, maxTicket);
+if (ticket.length > maxTicket) {
+  ticketToShow.push(`e altri ${ticket.length - maxTicket}...`);
+}
 
   const apriLink = () => {
       const url = Link;
       Linking.openURL(url).catch((err) => console.error('An error occurred', err));
     }
 
-  const points = ['Minecraft', 'Python', 'Stampa 3D'];
+  //const points = ['Minecraft', 'Python', 'Stampa 3D'];
   return (
     <TouchableOpacity style={styles.eventCard} onPress={apriLink}>
       <Text style={styles.eventTitle} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{Title}</Text>
@@ -42,10 +48,10 @@ const MultilabEventCardInverted = ({ Link, dayEventDate2, monthEventDate2, Title
         </View>
         <View style={styles.eventTextContainer}>
           <Text style={styles.lab} allowFontScaling={false}>Laboratori</Text>
-          {points.map((point, index) => (
+          {ticketToShow.map((ticketToShow, index) => (
                     <View style={styles.item} key={index}>
                       <Text style={styles.bullet} allowFontScaling={false}>•</Text>
-                      <Text style={styles.bulletText} allowFontScaling={false}>{point}</Text>{/* //TODO modificare la descrizione con quella restituita dalle API */}
+                      <Text style={styles.bulletText} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{ticketToShow}</Text>
                     </View>
                   ))}
         </View>

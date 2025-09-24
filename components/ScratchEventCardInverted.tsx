@@ -7,9 +7,12 @@ interface ScratchEventCardInvertedProps {
   dayEventDate1: string | number;
   MonthEventDate1: string;
   Title: string;
+  ticket: string[];
 }
 
-const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title }: ScratchEventCardInvertedProps) => {
+const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title, ticket }: ScratchEventCardInvertedProps) => {
+
+  const ticketMod = ticket.map(t => t.replace(/Scratch\s*/i, '')).join(", ");
 
   const apriLink = () => {
     const url = Link;
@@ -42,7 +45,7 @@ const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title 
               </ShadowBox>
           </View>
           <View style={styles.eventTextContainer}>
-            <Text style={styles.lab} allowFontScaling={false}>Base, Guidato, Libero</Text> {/* //TODO modificare la descrizione con quella ricecuta dalle API */}
+            <Text style={[styles.lab, { flexShrink: 1 }]} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{ticketMod}</Text> 
           </View>
         </View>
       </TouchableOpacity>

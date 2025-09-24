@@ -7,10 +7,17 @@ interface ScratchEventCardProps {
   dayEventDate1: string;
   MonthEventDate1: string;
   Title: string;
-  Desc: string;
+  ticket: string[];
 }
 
-const ScratchEventCard = ({ Link, dayEventDate1, MonthEventDate1, Title, Desc }: ScratchEventCardProps) => {
+const ScratchEventCard = ({ Link, dayEventDate1, MonthEventDate1, Title, ticket }: ScratchEventCardProps) => {
+
+  const maxTicket = 3
+  const ticketToShow = ticket.slice(0, maxTicket);
+  if (ticket.length > maxTicket) {
+    ticketToShow.push(`e altri ${ticket.length - maxTicket}...`);
+  }
+
   const apriLink = () => {
     const url = Link;
     Linking.openURL(url).catch((err) => console.error('An error occurred', err));
@@ -41,14 +48,13 @@ const ScratchEventCard = ({ Link, dayEventDate1, MonthEventDate1, Title, Desc }:
                 </View>
 
                 <View style={styles.eventTextContainer}>
-                  {/*<Text style={styles.lab} allowFontScaling={false}>Laboratori</Text>*/}
-                  <Text style={styles.bulletText} allowFontScaling={false} numberOfLines={5} ellipsizeMode="tail">{Desc}</Text>
-                  {/* {points.map((point, index) => (
+                  <Text style={styles.lab} allowFontScaling={false}>Laboratori</Text>
+                  {ticketToShow.map((ticketToShow, index) => (
                     <View style={styles.item} key={index}>
                       <Text style={styles.bullet} allowFontScaling={false}>•</Text>
-                      
-                    </View>
-                  ))} */}
+                      <Text style={styles.bulletText} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{ticketToShow}</Text>
+                      </View>
+                  ))}
                 </View>
               </View>
             </TouchableOpacity>
@@ -120,18 +126,18 @@ const styles = StyleSheet.create({
         flex: 1,
       },
 
-      //// item: {
-      ////   flexDirection: 'row',
-      ////   alignItems: 'center',
-      ////   marginBottom: 5,
-      ////   paddingLeft: 10,
-      //// },
-      //// bullet: {
-      ////   marginRight: 10,
-      ////   color: "#ffffff",
-      ////   fontSize: 15,
-      ////   fontFamily: 'Poppidans'
-      //// },
+      item: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+        paddingLeft: 10,
+      },
+      bullet: {
+        marginRight: 10,
+        color: "#ffffff",
+        fontSize: 15,
+        fontFamily: 'Poppidans'
+      },
     
       bulletText: {
         color: "#ffffff",
@@ -139,11 +145,11 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Bold'
       },
 
-     // // lab: {
-     // //   color: "#ffffff",
-      ////   fontWeight: "bold",
-      ////   fontSize: 15,
-      //// },
+     lab: {
+       color: "#ffffff",
+        fontWeight: "bold",
+        fontSize: 15,
+      },
 });
 
 export default ScratchEventCard;

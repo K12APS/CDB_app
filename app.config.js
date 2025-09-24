@@ -37,6 +37,12 @@ export default {
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "L'app ha bisogno di accedere al calendario per aggiungere i prossimi eventi."
+        }
+      ],
       
       [
         "expo-font",

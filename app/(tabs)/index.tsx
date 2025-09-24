@@ -231,6 +231,7 @@ export default function Index() {
 
   const extractDate = (dateString: string) => {
     const match = dateString.match(/(\d+)\s([a-zA-Zà-ù]+)/);
+    //console.log('Match result:', dateString, match); // Log per il debug
     if (match) {
       const day = match[1];   // Giorno (numero)
       const month = match[2];  // Mese (es. "dicembre")
@@ -258,6 +259,7 @@ export default function Index() {
         setError('Impossibile caricare gli eventi. Riprova più tardi...');
         setLoading(false);
       } else {
+
 
         let scratchDayEvent: Event | null = null;
         let multiLabEvent: Event | null = null;
@@ -304,8 +306,10 @@ export default function Index() {
 
   const eventDate1 = events.length > 0 ? extractDate(events[0]?.name?.text) : { day: '00', month: 'ERR' };
   const eventDate2 = events.length > 1 ? extractDate(events[1]?.name?.text) : { day: '00', month: 'ERR' };
+
   // console.log('-------------------')
   // console.log(eventDate1, eventDate2)
+  // console.log(events[1]?.name?.text)
   // console.log('-------------------')
 
   const event1Day = eventDate1?.day !== null ? eventDate1.day : '00';
@@ -316,6 +320,14 @@ export default function Index() {
 
   const eventName1 = events.length > 0 ? extractEventName(events[0]?.name?.text) : 'Errore';
   const eventName2 = events.length > 1 ? extractEventName(events[1]?.name?.text) : 'Errore';
+
+  //const ticket1 = events.length > 0 ? events[0]?.ticket_classes
+  // console.log("++++++++++++++++++++++++++++++++")
+  // console.log(events[0]?.ticket_classes[0]?.name);
+  const ticketLab1 = events.length > 0 ? events[0]?.ticket_classes?.map(ticket => ticket.name) : 'Errore';
+  const ticketLab2 = events.length > 1 ? events[1]?.ticket_classes?.map(ticket => ticket.name) : 'Errore';
+
+  // console.log("++++++++++++++++++++++++++++++++")
 
   const igPress = () => {
     
@@ -376,7 +388,7 @@ export default function Index() {
                               dayEventDate1={eventDate1.day} 
                               MonthEventDate1={eventDate1.month}
                               Title={eventName1}
-                              Desc={events[0].description.text}
+                              ticket = {ticketLab1}
                             />
                           ) : null}
 
@@ -386,6 +398,7 @@ export default function Index() {
                               dayEventDate2={eventDate2.day}
                               monthEventDate2={eventDate2.month}
                               Title={eventName2}
+                              ticket = {ticketLab2}
                             />
                           ) : null}
                         </>
@@ -397,6 +410,7 @@ export default function Index() {
                               dayEventDate2={eventDate1.day}
                               monthEventDate2={eventDate1.month}
                               Title={eventName1}
+                              ticket = {ticketLab1}
                             />
                           ) : null}
                           
@@ -406,6 +420,7 @@ export default function Index() {
                               dayEventDate1={eventDate2.day}
                               MonthEventDate1={eventDate2.month}
                               Title={eventName2}
+                              ticket = {ticketLab2}
                             />
                           ) : null}
                         </>

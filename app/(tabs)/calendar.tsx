@@ -110,7 +110,7 @@ export default function CalendarScreen() {
                                         dayEventDate1={extractDay(event.start.local)}
                                         MonthEventDate1={mesiAbbreviati[extractMonth(event.start.local) - 1]}
                                         Title={nomeEvento}
-                                        //Desc={event.description.text}
+                                        ticket={event?.ticket_classes?.map(ticket => ticket.name) || []}
                                     />
                                 ) : (
                                     <MultilabEventCard
@@ -118,7 +118,7 @@ export default function CalendarScreen() {
                                         dayEventDate2={extractDay(event.start.local)}
                                         monthEventDate2={mesiAbbreviati[extractMonth(event.start.local) - 1]}
                                         Title={nomeEvento}
-                                        //Desc={event.description.text}
+                                        ticket={event?.ticket_classes?.map(ticket => ticket.name) || []}
                                     />
                                 )}
                             </View>
