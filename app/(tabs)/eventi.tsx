@@ -147,7 +147,16 @@ export default function EventiScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scroll} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}>
+    <ScrollView 
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingBottom: 100, // Aumentato da 80 a 100
+      }} 
+      style={{ 
+        flex: 1,
+        backgroundColor: isDark ? '#1E1E1E' : '#ffffff' 
+      }}
+    >
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={containerStyle}>
 
@@ -250,24 +259,21 @@ export default function EventiScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 1,
-    padding: -1,
-  },
   containerDark: {
     flex: 1,
     backgroundColor: '#1E1E1E',
     padding: 16,
+    position: 'relative', // Assicura il corretto posizionamento del bottone
   },
   containerLight: {
     flex: 1,
     backgroundColor: '#ffffff',
     padding: 16,
+    position: 'relative', // Assicura il corretto posizionamento del bottone
   },
-
   addButtonContainer: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 40, // Aumentato da 20 a 30
     right: 16,
     height: 56,
     width: 56,

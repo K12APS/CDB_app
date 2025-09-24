@@ -1,14 +1,19 @@
-import { StyleSheet, View, ScrollView, RefreshControl, useColorScheme, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, ScrollView, RefreshControl, useColorScheme, Button, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { Text } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import * as Calendar from 'expo-calendar';
+import { Platform } from "react-native";
 
 import { api } from '../../services/api';
 import ScratchEventCard from '@/components/ScratchEventCard';
 import MultilabEventCard from '@/components/MultilabEventCard';
 import ScratchEventCardInverted from '@/components/ScratchEventCardInverted';
 import NextSeason from '@/components/NextSeason';
+
+const add_calendar_dark_theme = require('../../assets/images/add_calendar_light.png');
+const add_calendar_light_theme = require('../../assets/images/add_calendar_dark.png');
 
 interface Event {
     id: string;
@@ -80,15 +85,116 @@ export default function CalendarScreen() {
         fetchEvents().finally(() => setRefreshing(false));
     };
 
+    const addToCalendar = async () => {
+    
+        const { status } = await Calendar.requestCalendarPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+              "Permesso al calendario negato",
+              "Devi abilitare i permessi per il calendario nelle impostazione del telefono.",
+              [
+                {text: "Annulla", style: "cancel"},
+                {text: "Vai alle impostazioni",
+                  onPress: () => {
+                    if (Platform.OS === 'ios') {
+                      Linking.openURL('app-settings:');
+                    } else {
+                      Linking.openSettings();
+                    }
+                  }
+                }
+              ]
+            )
+            return;
+          }
+    
+          
+           const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+    
+            
+            for (const cal of calendars) {
+              if (cal.title === "Eventi CoderDojoBrianza") {
+                await Calendar.deleteCalendarAsync(cal.id);
+              }
+            }
+    
+          const defaultCalendarSource =
+        Platform.OS === 'ios'
+          ? await getDefaultCalendarSource()
+          : { isLocalAccount: true, name: 'CoderdojoBrianza' };
+    
+        // Crea un calendario personalizzato
+      const calendarId = await Calendar.createCalendarAsync({
+        title: "Eventi CoderDojoBrianza",
+        color: "green",
+        entityType: Calendar.EntityTypes.EVENT,
+        sourceId: defaultCalendarSource.id,
+        source: defaultCalendarSource,
+        name: "Eventi CoderDojoBrianza",
+        ownerAccount: "personal",
+        accessLevel: Calendar.CalendarAccessLevel.OWNER,
+      });
+    
+      const { events: eventi, error } = await api({ size: 15 });
+      if(error) {
+        console.log(error);
+        Alert.alert("Errore", "Impossibile caricare gli eventi. Riprova più tardi.");
+        return;
+      }
+    
+      if(eventi.length === 0) {
+        Alert.alert("Nessun evento", "Non ci sono eventi da aggiungere al calendario.");
+        return;
+      }
+    
+      for(const ev of eventi) {
+        try {
+          await Calendar.createEventAsync(calendarId, {
+          title: ev.name.text,
+          startDate: new Date(ev.start.utc),
+          endDate: new Date(ev.end.utc),
+          timeZone: ev.start.timezone,
+          location: ev.venue ? `${ev.venue.address.localized_address_display}` : "Online Event",
+        });
+        } catch (error) {
+          console.log(ev.name.text)
+          console.log("Errore durante la creazione dell'evento:", error);
+        }
+        
+      }
+    
+      alert("Eventi aggiunti al calendario!");
+    
+      }
+    
+      async function getDefaultCalendarSource() {
+      const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+      return defaultCalendar.source;
+    }
+
     useEffect(() => {
         fetchEvents();
     }, []);
 
     
     return (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
+        <ScrollView 
+            contentContainerStyle={styles.scroll} 
+            showsVerticalScrollIndicator={false} 
+            style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <View style={containerStyle}>
+                {/* Header con bottone sincronizza */}
+                <View style={styles.headerContainer}>
+                    <TouchableOpacity onPress={addToCalendar}>
+                        <Image 
+                            source={isDark ? add_calendar_dark_theme : add_calendar_light_theme}
+                            style={styles.calendarIcon}
+                        />
+                    </TouchableOpacity>
+                </View>
 
                 {loading ? (
                     <Text style={styles.loadingText} allowFontScaling={false}>Caricamento eventi...</Text>
@@ -197,5 +303,19 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         textAlign: 'center',
         fontWeight: 'bold',
+    },
+
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end', 
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        width: '100%',
+    },
+    calendarIcon: {
+        width: 24,
+        height: 24,
+        marginRight: 0, 
     },
 });

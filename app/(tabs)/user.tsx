@@ -126,11 +126,15 @@ export default function AboutScreen() {
 
 
   return (
-    <ScreenContainer style={{ flex: 1 }}>
+    <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> // Aggiungi backgroundColor
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Screen>
+      <Screen style={{ flex: 1 }}> // Aggiungi flex: 1
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
+        <ScrollView 
+          contentContainerStyle={styles.scroll} 
+          showsVerticalScrollIndicator={false} 
+          style={{ flex: 1 }} // Aggiungi flex: 1
+        > 
           <View style={containerStyle}>
             {/* <StatusBar style="light" /> */}
 
@@ -339,8 +343,8 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
 
   scroll: {
-    flexGrow: 1, // Questo assicura che il contenitore cresca e possa scorrere se necessario
-    padding: -1, // Spazio attorno ai bordi
+    flexGrow: 1,
+    // Rimuovi padding: -1
   },
   containerDark: {
       flex: 1,

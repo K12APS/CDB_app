@@ -24,6 +24,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { initializeFirebase } from '../../services/firebase-config'; // Importa la funzione di inizializzazione di Firebase
+
 initializeFirebase();
 
 const helpImageLight = require('@/assets/images/help_light.png'); 
@@ -582,6 +583,8 @@ export default function Index() {
                                 </View>
                               </View>
                             </Modal>
+
+
       
             </View>
           </ScrollView>
@@ -861,5 +864,6 @@ const styles = StyleSheet.create({
     marginBottom: -2,
     textAlign: 'center',
   },
+
 });
 
