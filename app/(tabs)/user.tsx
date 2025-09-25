@@ -8,6 +8,9 @@ import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import HeaderBar from "@/components/HeaderBar";
 
 enableScreens();
 
@@ -126,15 +129,19 @@ export default function AboutScreen() {
 
 
   return (
-    <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> // Aggiungi backgroundColor
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+      
+    <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
+      
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Screen style={{ flex: 1 }}> // Aggiungi flex: 1
+      <Screen style={{ flex: 1 }}> 
 
         <ScrollView 
           contentContainerStyle={styles.scroll} 
           showsVerticalScrollIndicator={false} 
-          style={{ flex: 1 }} // Aggiungi flex: 1
+          style={{ flex: 1 }} 
         > 
+        <HeaderBar title="Home" />
           <View style={containerStyle}>
             {/* <StatusBar style="light" /> */}
 
@@ -337,6 +344,7 @@ export default function AboutScreen() {
         </ScrollView>
       </Screen>
     </ScreenContainer>
+    </SafeAreaView>
   );
 }
 
@@ -344,7 +352,9 @@ const styles = StyleSheet.create({
 
   scroll: {
     flexGrow: 1,
-    // Rimuovi padding: -1
+    paddingBottom: Platform.select({
+      android: 90,
+    }),
   },
   containerDark: {
       flex: 1,

@@ -5,6 +5,10 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ShadowBox, NeomorphBox } from 'react-native-neomorph-shadows';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+
+import HeaderBar from "@/components/HeaderBar";
 
 
 const addImage = require('@/assets/images/add.png');
@@ -147,17 +151,22 @@ export default function EventiScreen() {
   };
 
   return (
+    
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+      <StatusBar style={isDark ? 'light' : 'dark'}  />
     <ScrollView 
       contentContainerStyle={{
         flexGrow: 1,
-        paddingBottom: 100, // Aumentato da 80 a 100
+        paddingBottom: Platform.select({
+          android: 90,
+        }), 
       }} 
       style={{ 
         flex: 1,
         backgroundColor: isDark ? '#1E1E1E' : '#ffffff' 
       }}
     >
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <HeaderBar title="Eventi" />
       <View style={containerStyle}>
 
 
@@ -230,9 +239,7 @@ export default function EventiScreen() {
         ))}
 
         {/* Bottone per aprire il pop-up */}
-        <TouchableOpacity style={styles.addButtonContainer} onPress={openModal}>
-          <Image source={addImage}></Image>
-        </TouchableOpacity>
+        
 
         {/* Renderizza PopUp e passagli addCard come prop //TODO gestire dark theme*/}
         <PopUp modalVisible={modalVisible} closeModal={closeModal} addCard={addCard} />
@@ -255,6 +262,10 @@ export default function EventiScreen() {
 
       </View>
     </ScrollView>
+    <TouchableOpacity style={styles.addButtonContainer} onPress={openModal}>
+          <Image source={addImage}></Image>
+        </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -273,8 +284,7 @@ const styles = StyleSheet.create({
   },
   addButtonContainer: {
     position: 'absolute',
-    bottom: 40, // Aumentato da 20 a 30
-    right: 16,
+    right: 25,
     height: 56,
     width: 56,
     backgroundColor: '#f3CB04',
@@ -286,6 +296,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    bottom: Platform.select({
+      ios: 90,
+      android: 120,
+    }),
   },
   cardScratch: {
     backgroundColor: '#f3CB04',

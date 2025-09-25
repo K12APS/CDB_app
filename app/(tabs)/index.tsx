@@ -3,6 +3,7 @@
 import { Text, View, StyleSheet, TouchableOpacity, Linking, ScrollView, Platform, Image, RefreshControl, useColorScheme, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -19,6 +20,8 @@ import NextSeason from '@/components/NextSeason';
 import SmallLoadingCard from '@/components/SmallLoadingCard';
 import LargeLoadingCard from '@/components/LargeLoadingCard';
 import BlogLoadingCard from '@/components/BlogLoadingCard';
+
+import HeaderBar from "@/components/HeaderBar";
 
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -53,7 +56,7 @@ async function registerWithBackend(token: string) {
       },
       body: JSON.stringify({ token }),
     });
-    console.log('Response status:', response.status);
+    //console.log('Response status:', response.status);
     if (response.ok) {
       console.log('Token registered with backend successfully');
       return true;
@@ -108,6 +111,7 @@ async function registerForPushNotificationsAsync() {
       
       // Register with your backend
       if (token.data) {
+        console.log("Registering token with backend...");
         await registerWithBackend(token.data);
       }
       
@@ -212,10 +216,10 @@ export default function Index() {
     });
 
     return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
+      //!! notificationListener.current &&
+      //   Notifications.removeNotificationSubscription(notificationListener.current);
+      // responseListener.current &&
+      //   Notifications.removeNotificationSubscription(responseListener.current);
       // Clear interval on component unmount
       if (registrationInterval.current) {
         clearInterval(registrationInterval.current);
@@ -356,6 +360,14 @@ export default function Index() {
 
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+        {/* <View style={styles.scroll}> */}
+        
+          
+
+          
+      
+    
           <ScrollView
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
@@ -365,6 +377,7 @@ export default function Index() {
             }
           >
             <StatusBar style={isDark ? 'light' : 'dark'} />
+            <HeaderBar title="Home" />
 
             <View style={ContainerStyle}>
               
@@ -536,11 +549,7 @@ export default function Index() {
               </TouchableOpacity> */}
 
 
-                {/*Bottone supporto */}
-                <TouchableOpacity style={styles.addButtonContainer} onPress={openModal} >
-                  <Image source={isDark ? helpImageLight : helpImageDark}></Image>
-                </TouchableOpacity>
-
+                
                  <Modal
                               animationType="fade"
                               transparent={true}
@@ -588,10 +597,17 @@ export default function Index() {
       
             </View>
           </ScrollView>
+          {/* </View> */}
+          {/*Bottone supporto */}
+                <TouchableOpacity style={styles.addButtonContainer} onPress={openModal} >
+                  <Image source={isDark ? helpImageLight : helpImageDark}></Image>
+                </TouchableOpacity>
+          </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+
   touchable: {
     marginBottom: 20, // Margine intorno al tocco
   },
@@ -603,6 +619,9 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1, // Questo assicura che il contenitore cresca e possa scorrere se necessario
     padding: -1, // Spazio attorno ai bordi
+    paddingBottom: Platform.select({
+      android: 90,
+    }),
   },
   containerDark: {
     flex: 1,
@@ -758,8 +777,7 @@ const styles = StyleSheet.create({
   },
   addButtonContainer: {
     position: 'absolute',
-    bottom: 16,
-    right: 16,
+    right: 25,
     height: 56,
     width: 56,
     backgroundColor: '#f3CB04',
@@ -771,6 +789,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    bottom: Platform.select({
+      ios: 90,
+      android: 120,
+    }),
   },
   modalContainer: {
     flex: 1,
