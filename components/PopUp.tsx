@@ -89,13 +89,13 @@ const PopUp = ({ modalVisible, closeModal, addCard }) => {
 
     
 
-    if (!selectedOption) {
-      setOptionError('Seleziona un\'opzione');
-      valid = false;
+    // if (!selectedOption) {
+    //   setOptionError('Seleziona un\'opzione');
+    //   valid = false;
       
-    } else {
-      setOptionError('');
-    }
+    // } else {
+    //   setOptionError('');
+    // }
     if(!valid) {
       return;
     }
@@ -126,6 +126,7 @@ const PopUp = ({ modalVisible, closeModal, addCard }) => {
       setApiError('Evento non trovato per la data selezionata.');
       valid = false;
     }
+    const eventType = eventExists.name.text.split('|')[0].trim();
     const localizedAddress = eventExists.venue.address.localized_multi_line_address_display;
     const formattedVenue = localizedAddress.join(', ');
     const nameLocation = eventExists.venue.name || '';
@@ -138,7 +139,7 @@ const PopUp = ({ modalVisible, closeModal, addCard }) => {
       return; // Non procedere se ci sono errori
     }
 
-    const data = { nome, cognome, giorno, mese, selectedOption, venue: location };
+    const data = { nome, cognome, giorno, mese, selectedOption: eventType, venue: location };
     try {
       // Aggiungi la card alla lista principale
       addCard(data);
@@ -227,7 +228,7 @@ const PopUp = ({ modalVisible, closeModal, addCard }) => {
               </View>
             </View>
 
-            <View style={styles.selectionContainer}>
+            {/* <View style={styles.selectionContainer}>
               <TouchableOpacity
                 style={[styles.option, selectedOption === 'ScratchDay' && styles.focusedOption]}
                 onPress={() => setSelectedOption('ScratchDay')}
@@ -241,7 +242,7 @@ const PopUp = ({ modalVisible, closeModal, addCard }) => {
                 <Text allowFontScaling={false} style={styles.button}>Multilab</Text>
               </TouchableOpacity>
             </View>
-            {optionError ? <Text allowFontScaling={false} style={styles.errorText}>{optionError}</Text> : null}
+            {optionError ? <Text allowFontScaling={false} style={styles.errorText}>{optionError}</Text> : null} */}
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

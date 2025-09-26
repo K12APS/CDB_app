@@ -7,16 +7,20 @@ import { ShadowBox, NeomorphBox } from 'react-native-neomorph-shadows';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
+import { GlassView } from 'expo-glass-effect';
 
 import HeaderBar from "@/components/HeaderBar";
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-const addImage = require('@/assets/images/add.png');
-
-const notification = require('@/assets/images/notification.png');
-const activeNotification = require('@/assets/images/activeNotification.png');
-
-
+const getCardColor = (title: string) => {
+  if (title.toLowerCase().includes('scratch')) {
+    return '#F3CB04';
+  } else if (title.toLowerCase().includes('multilab')) {
+    return '#01732b';
+  }
+  return '#007ACC';
+};
 
 export default function EventiScreen() {
 
@@ -166,7 +170,7 @@ export default function EventiScreen() {
         backgroundColor: isDark ? '#1E1E1E' : '#ffffff' 
       }}
     >
-      <HeaderBar title="Eventi" />
+      <HeaderBar title="Biglietti" />
       <View style={containerStyle}>
 
 
@@ -196,18 +200,20 @@ export default function EventiScreen() {
         {cards.map((card, index) => (
           <TouchableOpacity
             key={index}
-            onLongPress={() => handleLongPress(index)} // Gestisce il long press
-            style={card.selectedOption === 'ScratchDay' ? styles.cardScratch : styles.cardMulti}
+            onLongPress={() => handleLongPress(index)}
+            style={[styles.card, { backgroundColor: getCardColor(card.selectedOption) }]}
           >
-            <Text allowFontScaling={false} style={styles.cardTitle}>{card.selectedOption}</Text>
-            
-            {/* Campanella per notifiche */}
-            <TouchableOpacity onPress={toggleNotification} style={styles.notificationContainer}>
-              <Image 
-                style={styles.notification}
-                source={isActive ? activeNotification : notification} // Usa l'immagine in base allo stato
-              />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text allowFontScaling={false} style={styles.cardTitle}>{card.selectedOption}</Text>
+              <TouchableOpacity onPress={toggleNotification} style={styles.notificationContainer}>
+                <Ionicons 
+                  name={isActive ? "notifications" : "notifications-outline"} 
+                  size={32} 
+                  color='#fff' 
+                  style={styles.notification} 
+                />
+              </TouchableOpacity>
+            </View>
             
             <View style={styles.cardContent}>
               <View style={styles.DateCard}>
@@ -216,11 +222,11 @@ export default function EventiScreen() {
                   useSvg
                   style={{
                     shadowOffset: {width: 1, height: 5}, 
-                    shadowOpacity: card.selectedOption === 'ScratchDay' ? .5 : .7,
+                    shadowOpacity: .7,
                     shadowColor: "#000",
                     shadowRadius: 3,
                     borderRadius: 35,
-                    backgroundColor:  card.selectedOption === 'ScratchDay' ? '#f3CB04' : '#01732B',
+                    backgroundColor: getCardColor(card.selectedOption),
                     width: 92,
                     height: 108,
                   }}
@@ -262,9 +268,12 @@ export default function EventiScreen() {
 
       </View>
     </ScrollView>
-    <TouchableOpacity style={styles.addButtonContainer} onPress={openModal}>
-          <Image source={addImage}></Image>
+
+      <GlassView style={styles.glassView}>
+        <TouchableOpacity onPress={openModal}>
+          <Ionicons name="add-outline" size={38} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
+      </GlassView>
     </SafeAreaView>
   );
 }
@@ -282,40 +291,46 @@ const styles = StyleSheet.create({
     padding: 16,
     position: 'relative', // Assicura il corretto posizionamento del bottone
   },
-  addButtonContainer: {
+
+  glassView: {
     position: 'absolute',
-    right: 25,
+    right: 21,
     height: 56,
     width: 56,
-    backgroundColor: '#f3CB04',
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    borderRadius: Platform.select({
+      ios: 100,
+      android: 100,
+    }),
     bottom: Platform.select({
       ios: 90,
       android: 120,
     }),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Platform.select({
+      android: '#f3CB04', 
+    }),
   },
-  cardScratch: {
-    backgroundColor: '#f3CB04',
-    borderRadius: 30,
-    padding: 16,
-    marginBottom: 20,
-    height: 200,
-    paddingLeft: 30,
-    shadowColor: "#000", 
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  cardMulti: {
-    backgroundColor: '#01732B',
+  // addButtonContainer: {
+  //   position: 'absolute',
+  //   right: 21,
+  //   height: 56,
+  //   width: 56,
+  //   backgroundColor: '#f3CB04',
+  //   borderRadius: 100,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 4 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 6,
+  //   elevation: 3,
+  //   bottom: Platform.select({
+  //     ios: 90,
+  //     android: 120,
+  //   }),
+  // },
+  card: {
     borderRadius: 30,
     padding: 16,
     marginBottom: 20,
@@ -331,7 +346,9 @@ const styles = StyleSheet.create({
     fontSize: 32,
     color: '#fff',
     marginBottom: 5,
-    fontFamily: 'Poppins-Bold'
+    fontFamily: 'Poppins-Bold',
+    flex: 1,
+    paddingTop: 8, // Aggiunto per allineare meglio con l'icona
   },
   cardContent: {
     flexDirection: 'row',
@@ -374,13 +391,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
   },
   notificationContainer: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+    justifyContent: 'center',
+    paddingRight: 16,
+    marginBottom: 5, // Aggiunto per allineare con il titolo
+    paddingTop: 8,  // Aggiunto per allineare con il titolo
   },
   notification: {
-    width: 50,
-    height: 50,
+    width: 32,  // Modificato per essere più preciso
+    height: 32, // Modificato per essere più preciso
   },
   modalBackground: {
     flex: 1,

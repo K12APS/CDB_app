@@ -10,8 +10,18 @@ interface ScratchEventCardInvertedProps {
   ticket: string[];
 }
 
-const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title, ticket }: ScratchEventCardInvertedProps) => {
+const getCardColor = (title: string) => {
+  if (title.toLowerCase().includes('scratch')) {
+    return '#F3CB04';
+  } else if (title.toLowerCase().includes('multilab')) {
+    return '#01732b';
+  }
+  return '#007ACC';
+};
 
+const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title, ticket }: ScratchEventCardInvertedProps) => {
+  const cardColor = getCardColor(Title);
+  
   const ticketMod = ticket.map(t => t.replace(/Scratch\s*/i, '')).join(", ");
 
   const apriLink = () => {
@@ -21,10 +31,10 @@ const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title,
 
     const points = ['Base', 'Guidato', 'Scratch Libero'];
     return (
-      <TouchableOpacity style={styles.nextEventCard} onPress={apriLink} >
+      <TouchableOpacity style={[styles.nextEventCard, { backgroundColor: cardColor }]} onPress={apriLink} >
         <Text style={styles.eventTitle} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{Title}</Text>
         <View style={styles.eventContent}>
-          <View style={styles.DateCard1}>
+          <View style={[styles.DateCard1, { backgroundColor: cardColor }]}>
           <ShadowBox
               inner
               useSvg
@@ -34,7 +44,7 @@ const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title,
                 shadowColor: "#000",
                 shadowRadius: 3,
                 borderRadius: 35,
-                backgroundColor: '#f3CB04',
+                backgroundColor: cardColor,
                 width: 92,
                 height: 30,
               }}
@@ -54,7 +64,7 @@ const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title,
   
   const styles = StyleSheet.create({
     nextEventCard: {
-      backgroundColor: '#f3CB04',
+      //backgroundColor: '#f3CB04',
       borderRadius: 30,
       padding: 16,
       paddingTop: 10,
@@ -78,7 +88,7 @@ const ScratchEventCardInverted = ({ Link, dayEventDate1, MonthEventDate1, Title,
       width: 92,
       justifyContent: "center",
       alignContent: "center",
-      backgroundColor: '#f3CB04',
+      //backgroundColor: '#f3CB04',
     },
     numberDateNext: {
       marginTop: -1,

@@ -96,7 +96,11 @@ const HeaderBar = ({ title }: { title: string }) => {
         
       }
     
-      alert("Eventi aggiunti al calendario!");
+      Alert.alert(
+        "Calendario aggiornato", 
+        "Eventi aggiunti al calendario!", 
+        [{ text: "OK" }] 
+      );
     
       }
     

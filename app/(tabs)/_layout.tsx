@@ -271,7 +271,7 @@ export default function TabLayout() {
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="eventi">
-          <Label>Tuoi eventi</Label>
+          <Label>Biglietti</Label>
           {Platform.select({
             ios: <Icon sf="calendar.and.person" />,
             android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="calendar-account" />} />,

@@ -5,13 +5,17 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Platform } from "react-native";
+import { GlassView } from 'expo-glass-effect';
 
 
 import { api } from '../../services/api';
 import ScratchEventCard from '@/components/ScratchEventCard';
 import MultilabEventCard from '@/components/MultilabEventCard';
-import ScratchEventCardInverted from '@/components/ScratchEventCardInverted';
+import ScratchEventCardInverted from '@/components/EventCardSmall';
+import EventCardSmall from '@/components/EventCardSmall';
 import NextSeason from '@/components/NextSeason';
+
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import HeaderBar from "@/components/HeaderBar";
 
@@ -119,7 +123,7 @@ export default function CalendarScreen() {
 
                         return (
                             <View key={event.id} style={styles.eventItem}>
-                                {isScratchEvent ? (
+                                {/* {isScratchEvent ? (
                                     <ScratchEventCardInverted
                                         Link={event.url}
                                         dayEventDate1={extractDay(event.start.local)}
@@ -135,7 +139,15 @@ export default function CalendarScreen() {
                                         Title={nomeEvento}
                                         ticket={event?.ticket_classes?.map(ticket => ticket.name) || []}
                                     />
-                                )}
+                                )} */}
+
+                                <EventCardSmall
+                                        Link={event.url}
+                                        dayEventDate1={extractDay(event.start.local)}
+                                        MonthEventDate1={mesiAbbreviati[extractMonth(event.start.local) - 1]}
+                                        Title={nomeEvento}
+                                        ticket={event?.ticket_classes?.map(ticket => ticket.name) || []}
+                                    />
                             </View>
                         );
                     })
@@ -148,9 +160,12 @@ export default function CalendarScreen() {
 
             </View>
         </ScrollView>
-        <TouchableOpacity style={styles.addTicketButton} onPress={() => router.push('/eventi')}>
-                    <Text style={styles.addTicketTextLight} allowFontScaling={false}>Aggiungi biglietto</Text>
-                </TouchableOpacity>
+        <GlassView style={styles.glassView}>
+        <TouchableOpacity  onPress={() => router.push('/eventi')}>
+          {/* <Image source={addImage}></Image> */}
+          <Ionicons name="add-outline" size={38} color={isDark ? '#fff' : '#000'} />
+        </TouchableOpacity>
+      </GlassView>
         </SafeAreaView>
     );
 }
@@ -192,13 +207,33 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Regular',
     },
 
+    glassView: {
+    position: 'absolute',
+    right: 21,
+    height: 56,
+    width: 56,
+    borderRadius: Platform.select({
+      ios: 100,
+      android: 100,
+    }),
+    bottom: Platform.select({
+      ios: 90,
+      android: 120,
+    }),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Platform.select({
+      android: '#f3CB04', 
+    }),
+  },
+
     addTicketButton: {
         position: 'absolute',
         bottom: Platform.select({
             ios: 90,
             android: 120,
         }),
-        right: 20,
+        right: 21,
         height: 56,
         width: 100,
         backgroundColor: '#f3CB04',

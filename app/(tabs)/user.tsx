@@ -12,6 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import HeaderBar from "@/components/HeaderBar";
 
+
+
 enableScreens();
 
 export default function AboutScreen() {
@@ -125,6 +127,14 @@ export default function AboutScreen() {
     Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
   };
 
+  const mail = () => {
+    MailComposer.composeAsync({
+      recipients: ['info@coderdojobrianza.it'],
+      subject: 'Richiesta di supporto',
+      body: 'Buongiorno, ho bisogno di aiuto',
+    });
+  };
+
   const navigation = useNavigation();
 
 
@@ -141,7 +151,7 @@ export default function AboutScreen() {
           showsVerticalScrollIndicator={false} 
           style={{ flex: 1 }} 
         > 
-        <HeaderBar title="Home" />
+        <HeaderBar title="Profilo" />
           <View style={containerStyle}>
             {/* <StatusBar style="light" /> */}
 
@@ -240,7 +250,7 @@ export default function AboutScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.siteButton} onPress={() => {
-                      supportLink();
+                      mail();
                       setTimeout(() => {
                         closeModal();
                       }, 300); // Ritardo per evitare problemi di chiusura del modal

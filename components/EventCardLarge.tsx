@@ -9,13 +9,24 @@ interface MultilabEventCardProps {
   ticket: string[];
 }
 
+const getCardColor = (title: string) => {
+  if (title.toLowerCase().includes('scratch')) {
+    return '#F3CB04';
+  } else if (title.toLowerCase().includes('multilab')) {
+    return '#01732b';
+  }
+  return '#007ACC';
+};
+
 const MultilabEventCardInverted = ({ Link, dayEventDate2, monthEventDate2, Title, ticket}: MultilabEventCardProps) => {
 
-const maxTicket = 3
-const ticketToShow = ticket.slice(0, maxTicket);
-if (ticket.length > maxTicket) {
-  ticketToShow.push(`e altri ${ticket.length - maxTicket}...`);
-}
+  const cardColor = getCardColor(Title);
+
+  const maxTicket = 3
+  const ticketToShow = ticket.slice(0, maxTicket);
+  if (ticket.length > maxTicket) {
+    ticketToShow.push(`e altri ${ticket.length - maxTicket}...`);
+  }
 
   const apriLink = () => {
       const url = Link;
@@ -24,10 +35,10 @@ if (ticket.length > maxTicket) {
 
   //const points = ['Minecraft', 'Python', 'Stampa 3D'];
   return (
-    <TouchableOpacity style={styles.eventCard} onPress={apriLink}>
+    <TouchableOpacity style={[styles.eventCard, { backgroundColor: cardColor }]} onPress={apriLink}>
       <Text style={styles.eventTitle} allowFontScaling={false} numberOfLines={1} ellipsizeMode="tail">{Title}</Text>
       <View style={styles.eventContent}>
-        <View style={styles.DateCard}>
+        <View style={[styles.DateCard, { backgroundColor: cardColor }]}>
           <ShadowBox
                         inner
                         useSvg
@@ -37,7 +48,7 @@ if (ticket.length > maxTicket) {
                           shadowColor: "#000",
                           shadowRadius: 3,
                           borderRadius: 35,
-                          backgroundColor: '#01732b',
+                          backgroundColor: cardColor,
                           width: 92,
                           height: 108,
                         }}
@@ -63,7 +74,7 @@ if (ticket.length > maxTicket) {
 const styles = StyleSheet.create({
 
   eventCard: {
-    backgroundColor: '#01732b',
+    //backgroundColor: '#01732b',
     borderRadius: 30,
     padding: 16,
     paddingTop: 10,
@@ -97,7 +108,7 @@ const styles = StyleSheet.create({
     width: 92,
     justifyContent: "center",
     alignContent: "center",
-    backgroundColor: '#01732b',
+    //backgroundColor: '#01732b',
   },
 
   numberDate: {
