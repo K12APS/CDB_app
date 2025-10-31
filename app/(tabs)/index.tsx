@@ -191,6 +191,19 @@ export default function Index() {
   const responseListener = useRef<Notifications.EventSubscription>();
   const registrationInterval = useRef<NodeJS.Timeout>();
 
+  useEffect(() => {
+  const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+    const url = response.notification.request.content.data.url;
+
+    if (url) {
+      console.log('Apro link:', url);
+      Linking.openURL(url); // apre il browser di sistema
+    }
+  });
+
+  return () => subscription.remove();
+}, []);
+
   // Function to register token with retry logic
   const registerTokenWithRetry = async (token: string) => {
     if (!token) return;
