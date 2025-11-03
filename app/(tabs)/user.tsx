@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ScreenContainer, Screen } from 'react-native-screens'; 
 import { enableScreens } from 'react-native-screens'; 
 import { useNavigation } from 'expo-router';
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, use } from 'react';
 import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
@@ -29,6 +29,25 @@ enableScreens();
 
 
 export default function AboutScreen() {
+//! da spostare in un file separato che verifica prima di tutto se l'utente è loggato 
+  useEffect(() => {
+    console.log('++++++++++++++++++++++++++++++++')
+    const loadInfo = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
+          headers: { Authorization: `${token}` }
+        });
+        console.log('response:', response.data.user.nome);
+        await AsyncStorage.setItem('userName', response.data.user.nome);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadInfo(); // chiama la funzione async
+  }, []);
+
 
   const termsAndConditions = `
 **Termini e Condizioni d’Uso**
@@ -165,23 +184,49 @@ Per domande, segnalazioni o richieste di assistenza:
 
   // Funzione login
   const loginUser = () => {
-    console.log('Login function called');
+
+    setEmail(email.trim().toLowerCase());
+    
+    if(!email || !password) {
+      setAuthStatus('Compila tutti i campi');
+      setAuthColor('red');
+      return;
+    }
+
+    if(!verifyEmail(email)) {
+      setAuthStatus('Inserisci un indirizzo email valido.');
+      setAuthColor('red');
+      return;
+    }
+
+
     try {
       axios.post('https://api.coderdojobrianza.it:3000/login', {
         email: email,
         password: password
       })
       .then(response => {
-        console.log(response.status);
-        if (response.status === 200) {
-          Alert.alert('Successo', 'Login avvenuto con successo!');
-        } else {
-          Alert.alert('Errore', response.data.message);
-        }
+        setAuthStatus('Login effettuato con successo!');
+        setAuthColor('green');
+
+
+        // nascondi il messaggio dopo 2 secondi e chiudi il popup
+        setTimeout(() => {
+          setLoginPopupVisible(false);
+          setAuthStatus(null);
+          setEmail('');
+          setPassword('');
+        }, 2000);
       })
       .catch(error => {
-        console.error('There was an error!', error);
-        Alert.alert('Errore', 'Si è verificato un errore durante il login.');
+        if(error.response && error.response.status === 401) {
+        setAuthStatus('Email o password errati.');
+        setAuthColor('red');
+        } else {
+          setAuthStatus('Si è verificato un errore durante il login.');
+          setAuthColor('red');
+        }
+
       });
     } catch (error) {
       
@@ -233,12 +278,12 @@ Per domande, segnalazioni o richieste di assistenza:
     }
 
     //verifica password
-    if(!verifyPassword(password)) {
-      console.log('password non valida');
-      setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
-      setAuthColor('red');
-      return;
-    }
+    //!! if(!verifyPassword(password)) {
+    //   console.log('password non valida');
+    //   setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
+    //   setAuthColor('red');
+    //   return;
+    // }
 
     //verifica conferma password
     if(password !== passwordConfirm) {
@@ -261,7 +306,10 @@ Per domande, segnalazioni o richieste di assistenza:
       password: password,
     })
 
-    .then((response) => {
+    .then(async (response) => {
+      await AsyncStorage.setItem('token', response.data.token);
+      console.log(response.data);
+      console.log(await AsyncStorage.getItem('token'));
       // Svuota i campi dopo la registrazione
       setPassword('');
       setEmail('');
@@ -481,14 +529,15 @@ Per domande, segnalazioni o richieste di assistenza:
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
                   <Text style={modalTitleStyle} allowFontScaling={false}>Login</Text>
+                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} allowFontScaling={false}>{authStatus}</Text>
                   <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='username' autoComplete='email'/>
                   <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} textContentType="password" autoComplete="current-password"/>
 
                   <View style ={styles.supportButton}>
-                    <TouchableOpacity style={styles.saveButton} onPress={() => {setLoginPopupVisible(false); loginUser();}}>
+                    <TouchableOpacity style={styles.saveButton} onPress={() => {loginUser();}}>
                         <Text style={styles.buttonText} allowFontScaling={false}>Accedi</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.closeButton} onPress={() => setLoginPopupVisible(false)}>
+                      <TouchableOpacity style={styles.closeButton} onPress={() => {setLoginPopupVisible(false); setAuthStatus(null); setEmail(''); setPassword('');}}>
                         <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
                       </TouchableOpacity>
                   </View>
@@ -514,7 +563,7 @@ Per domande, segnalazioni o richieste di assistenza:
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
                   <Text style={modalTitleStyle} allowFontScaling={false}>Registrazione</Text>
-                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} >{authStatus}</Text>
+                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} allowFontScaling={false}>{authStatus}</Text>
                   <TextInput placeholder="Nome"  style={styles.input} onChangeText={setNome} autoCapitalize='words' value={nome}/>
                   <TextInput placeholder="Cognome"  style={styles.input} onChangeText={setCognome} autoCapitalize='words' value={cognome}/>
                   <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='emailAddress' autoComplete='email' value={email}/>
@@ -540,8 +589,18 @@ Per domande, segnalazioni o richieste di assistenza:
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.closeButton} onPress={() =>{setRegisterPopupVisible(false); setAuthStatus(null); setNome(''); setCognome(''); setEmail(''); setPassword(''); setPasswordConfirm(''); setTermsAccepted(false);}}>
                         <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
+
                       </TouchableOpacity>
                   </View>
+
+                  <TouchableOpacity style={styles.registerButton} onPress={() => {
+                    setRegisterPopupVisible(false);
+                    setAuthStatus(null);
+                    setLoginPopupVisible(true);
+                  }}>
+                    <Text style={styles.buttonText} allowFontScaling={false}>Accedi</Text>
+                  </TouchableOpacity>
+
                 </View>
               </View>
             </Modal>
@@ -940,7 +999,7 @@ const styles = StyleSheet.create({
   },
 
   registerButton: {
-    backgroundColor: '#01722B',
+    backgroundColor: '#79C7DA',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,
