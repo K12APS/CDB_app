@@ -17,6 +17,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 
 
+
 // const home = require('../../assets/images/home.png');
 // const home_dark_theme = require('../../assets/images/home_dark_theme.png');
 // const calendar = require('../../assets/images/calendarIcn.png');
@@ -292,7 +293,8 @@ export default function TabLayout() {
             ios: <Icon sf="person.fill" />,
             android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="face-man" />} />,
           })}
-        </NativeTabs.Trigger>     
+        </NativeTabs.Trigger>   
+  
      </NativeTabs>
 
   );

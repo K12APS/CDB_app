@@ -3,22 +3,81 @@ import { StatusBar } from 'expo-status-bar';
 import { ScreenContainer, Screen } from 'react-native-screens'; 
 import { enableScreens } from 'react-native-screens'; 
 import { useNavigation } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Checkbox } from 'expo-checkbox';
+// import {
+//   BottomSheetModal,
+//   BottomSheetView,
+//   BottomSheetModalProvider,
+// } from '@gorhom/bottom-sheet';
+// import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// import { Portal } from '@gorhom/portal';
+
 
 import HeaderBar from "@/components/HeaderBar";
 import axios from 'axios';
-
+// import { SlideOutDown } from 'react-native-reanimated';
 
 
 enableScreens();
 
+
+
 export default function AboutScreen() {
 
+  const termsAndConditions = `
+**Termini e Condizioni d’Uso**
+
+**1. Informazioni generali**  
+L’applicazione **CDBapp** (di seguito “l’App”) è sviluppata e gestita da **K12 – APS**, associazione senza scopo di lucro con sede in Italia e sito ufficiale [www.coderdojobrianza.it](https://www.coderdojobrianza.it).  
+L’utilizzo dell’App implica l’accettazione completa dei presenti Termini e Condizioni. Se non accetti anche solo una parte di queste condizioni, ti invitiamo a non utilizzare l’App.
+
+**2. Destinatari dell’App**  
+L’App è destinata a utenti di età **superiore ai 14 anni**.  
+Utilizzando l’App dichiari di avere almeno 14 anni e di possedere la capacità legale di accettare i presenti Termini.
+
+**3. Funzionalità dell’App**  
+CDBapp consente di:  
+• Visualizzare i prossimi eventi organizzati da K12 – APS  
+• Ricevere notifiche sugli eventi  
+• Iscriversi alla newsletter  
+• Consultare gli ultimi articoli pubblicati sul blog ufficiale  
+• Registrarsi per segnare la propria partecipazione e monitorare i progressi  
+
+**4. Registrazione e account utente**  
+Per utilizzare alcune funzionalità è necessario creare un account, fornendo **nome, cognome, indirizzo email e una password**.  
+L’utente è responsabile della riservatezza delle proprie credenziali e di tutte le attività svolte con il proprio account.  
+K12 – APS non potrà essere ritenuta responsabile per eventuali accessi non autorizzati dovuti a negligenza dell’utente.
+
+**5. Protezione dei dati personali**  
+I dati forniti dagli utenti vengono trattati nel rispetto del **Regolamento (UE) 2016/679 (GDPR)** e della normativa italiana vigente.  
+Le informazioni personali (nome, cognome, email e password cifrata) vengono utilizzate esclusivamente per consentire il funzionamento dell’App e la gestione delle attività associative.  
+Per maggiori dettagli, consulta l’[Informativa sulla Privacy](https://www.coderdojobrianza.it/chi-siamo/tutela-della-privacy-con-coderdojo-brianza/).
+
+**6. Proprietà intellettuale**  
+Tutti i contenuti, loghi, testi e immagini presenti nell’App sono di proprietà di **K12 – APS** o utilizzati con licenza.  
+È vietata la copia, la distribuzione o la modifica dei contenuti senza autorizzazione scritta.
+
+**7. Limitazione di responsabilità**  
+K12 – APS non garantisce il funzionamento continuo, privo di errori o interruzioni dell’App.  
+L’App è fornita “così com’è” e l’associazione non è responsabile per eventuali danni diretti o indiretti derivanti dall’utilizzo dell’App.
+
+**8. Modifiche ai termini**  
+K12 – APS si riserva il diritto di modificare in qualsiasi momento i presenti Termini e Condizioni.  
+Le modifiche saranno comunicate tramite aggiornamenti dell’App o pubblicazione sul sito ufficiale.
+
+**9. Contatti**  
+Per domande, segnalazioni o richieste di assistenza:  
+📧 info@coderdojobrianza.it  
+🌐 www.coderdojobrianza.it
+`;
+
+  // Tema chiaro/scuro
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const containerStyle = isDark ? styles.containerDark : styles.containerLight;
@@ -27,6 +86,7 @@ export default function AboutScreen() {
   const modalTextStyle = isDark ? styles.modalTextDark : styles.modalTextLight;
   const badgeTitleStyle = isDark ? styles.badgeTitleDark : styles.badgeTitleLight;
 
+  // Stati per i vari popup/modal
   const [popupVisible, setpopupVisible] = useState(false);
   const [nameModalVisible, setNameModalVisible] = useState(false);
   const [userName, setUserName] = useState('');
@@ -34,7 +94,10 @@ export default function AboutScreen() {
   const [socialPopUpVisible, setSocialPopUpVisible] = useState(false);
   const [loginPopupVisible, setLoginPopupVisible] = useState(false);
   const [registerPopupVisible, setRegisterPopupVisible] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
+  // const [termsPopupVisible, setTermsPopupVisible] = useState(false);
 
+  // Funzioni per aprire/chiudere i modali
   const openModal = () => {
     setpopupVisible(true);
   };
@@ -51,6 +114,7 @@ export default function AboutScreen() {
     setSocialPopUpVisible(false);
   };
 
+  // Carica il nome salvato localmente all'avvio
   useEffect(() => {
     loadUserName();
   }, []);
@@ -66,25 +130,44 @@ export default function AboutScreen() {
     }
   };
 
+  // Gestione modale nome
   const insertName = () => {
-    setTempName(userName); // Initialize with current name
+    setTempName(userName); // imposta il nome temporaneo
     setNameModalVisible(true);
   };
 
+  // Mostra il modale login
   const login = () => {
-    // Implementa la logica di login qui
     setLoginPopupVisible(true);
   }
 
+  // Stati per i campi di input (login/registrazione)
   const [nome, setNome] = useState('');
   const [cognome, setCognome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [TermsAccepted, setTermsAccepted] = useState(false);
 
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
+  const [authColor, setAuthColor] = useState('red');
+
+// // ref
+//   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+//   // callbacks
+//   const handlePresentModalPress = useCallback(() => {
+//     bottomSheetModalRef.current?.present();
+//   }, []);
+//   const handleSheetChanges = useCallback((index: number) => {
+//     console.log('handleSheetChanges', index);
+//   }, []);
+
+  // Funzione login
   const loginUser = () => {
     console.log('Login function called');
     try {
-      axios.post('http://192.168.1.53:3000/login', {
+      axios.post('https://api.coderdojobrianza.it:3000/login', {
         email: email,
         password: password
       })
@@ -105,15 +188,73 @@ export default function AboutScreen() {
     }
   }
 
- 
+  //funzione verifica email
+  const verifyEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    return regex.test(email);
+  };
 
+  //funzione verifica password
+  const verifyPassword = (password: string) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,25}$/; //minimo 10 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale massimo 25 caratteri
+    return regex.test(password);
+  }
+
+  // Funzione registrazione
   const registerUser = () => {
     console.log('nome:', nome);
     console.log('cognome:', cognome);
     console.log('email:', email);
     console.log('password:', password);
 
-    axios.post('http://192.168.1.53:3000/register', {
+    setEmail(email.trim().toLowerCase());
+    setNome(nome.trim());
+    setCognome(cognome.trim());
+
+    //verifica lunghezza campi
+    if(nome.length < 2 || cognome.length < 2) {
+      setAuthStatus('Nome e cognome devono contenere almeno 2 caratteri.');
+      setAuthColor('red');
+      return;
+    }
+
+    //verifica inserimento campi
+    if(!nome || !cognome || !email || !password) {
+      setAuthStatus('Compila tutti i campi');
+      setAuthColor('red');
+      return;
+    }
+
+    //verifica email valida
+    if(!verifyEmail(email)) {
+      setAuthStatus('Inserisci un indirizzo email valido.');
+      setAuthColor('red');
+      return;
+    }
+
+    //verifica password
+    if(!verifyPassword(password)) {
+      console.log('password non valida');
+      setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
+      setAuthColor('red');
+      return;
+    }
+
+    //verifica conferma password
+    if(password !== passwordConfirm) {
+      setAuthStatus('Le password non corrispondono.');
+      setAuthColor('red');
+      return;
+    }
+
+    //verifica accettazione termini
+    if(!TermsAccepted) {
+      setAuthStatus('Devi accettare i termini e condizioni.');
+      setAuthColor('red');
+      return;
+    }
+
+    axios.post('https://api.coderdojobrianza.it:3000/register', {
       nome: nome,
       cognome: cognome,
       email: email,
@@ -121,19 +262,34 @@ export default function AboutScreen() {
     })
 
     .then((response) => {
+      // Svuota i campi dopo la registrazione
       setPassword('');
       setEmail('');
       setCognome('');
       setNome('');
+      setPasswordConfirm('');
+      setTermsAccepted(false);
 
-      console.log(response.data);
+      setAuthStatus('Login effettuato con successo!');
+      setAuthColor('green');
+
+      // nascondi il messaggio dopo 2 secondi e chiudi il popup
+      setTimeout(() => {
+        setRegisterPopupVisible(false);
+        setAuthStatus(null);
+        
+      }, 2000);
     })
     .catch(error => {
-      console.error('There was an error!', error);
-      Alert.alert('Errore', 'Si è verificato un errore durante la registrazione.');
+      if (error.response && error.response.status === 409) {
+        setAuthStatus('Questa email è già registrata');
+      } else {
+        setAuthStatus('Si è verificato un errore durante la registrazione');
+      }
     });
   }
 
+  // Chiede una recensione sull'App (solo iOS)
   const askReview = async () => {
   try {
     if (await StoreReview.isAvailableAsync()) {
@@ -144,16 +300,16 @@ export default function AboutScreen() {
   }
 };
 
-
+  // Salvataggio nome utente su AsyncStorage
   const saveName = async () => {
     try {
       await AsyncStorage.setItem('userName', tempName);
       setUserName(tempName);
       setNameModalVisible(false);
       Alert.alert('Successo', 'Nome salvato correttamente');
-      //chiedi all'utente se vuole lasciare una recensione sull'app (solo iOS)
+      // Richiesta recensione solo alla prima volta
       if (Platform.OS == 'ios') {
-        const reviewAsked = await AsyncStorage.getItem('reviewAsked');  //verifica se ha già risposto alla richiesta
+        const reviewAsked = await AsyncStorage.getItem('reviewAsked');
         if (reviewAsked !== 'true') {
         await askReview();
         await AsyncStorage.setItem('reviewAsked', 'true');
@@ -165,34 +321,25 @@ export default function AboutScreen() {
     }
   };
 
-  // const sendEmail = async () => {
-  //   const isAvailable = await MailComposer.isAvailableAsync();
-  //   if (isAvailable) {
-  //     await MailComposer.composeAsync({
-  //       recipients: ['info@coderdojobrianza.it'],
-  //       subject: 'Richiesta di supporto',
-  //       body: 'Buongiorno, ho bisogno di aiuto',
-  //     });
-  //   } else {
-  //     alert('Nessuna app di posta disponibile.');
-  //   }
-  // };
-
+  // Link di supporto
   const supportLink = () => {
     const url = 'https://www.coderdojobrianza.it/contatti/'; 
     Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
   };
 
+  // Link ai social
   const socialLink = () => {
     const url = 'https://unit.link/coderdojobrianza'; 
     Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
   };
 
+  // Link prenotazione PC
   const prenotaPc = () => {
     const url = 'https://www.coderdojobrianza.it/'; 
     Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
   };
 
+  // Invio mail di supporto
   const mail = () => {
     MailComposer.composeAsync({
       recipients: ['info@coderdojobrianza.it'],
@@ -203,8 +350,10 @@ export default function AboutScreen() {
 
   const navigation = useNavigation();
 
-
+  // RENDER DELLA PAGINA
   return (
+    // <GestureHandlerRootView>
+    //   <BottomSheetModalProvider>
     <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
       
     <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
@@ -219,21 +368,17 @@ export default function AboutScreen() {
         > 
         <HeaderBar title="Profilo" />
           <View style={containerStyle}>
-            {/* <StatusBar style="light" /> */}
 
-            {/*//*SCHEDA UTENTE*/}
+            {/* SCHEDA UTENTE */}
             <View style={styles.userTab}>
               <TouchableOpacity onPress={() => {login()}}>
                 <Text style={styles.userName} allowFontScaling={false}>
                   {userName ? userName : 'Inserisci il tuo nome'}
-                  
                 </Text>              
               </TouchableOpacity>
               <View style={styles.infoContainer}>
                 <View style={styles.imageContainer}>
-                  {/* rimuovere dimensioni con immagine dimensionata correttamente */}
                   <Image style ={{width: 92, height: 92}} source={require('../../assets/images/usrImg.png')} />
-                    
                   </View>
                 <View style={styles.userInfoContainer}>
                   <Text style={styles.presenze} allowFontScaling={false}>Presenze: </Text>
@@ -243,9 +388,7 @@ export default function AboutScreen() {
               </View>
             </View>
 
-            {/*//! FINE SCHEDA UTENTE*/}
-
-            {/*//*BADGE */}
+            {/* BADGE UTENTE */}
             <Text style={badgeTitleStyle} allowFontScaling={false}>I tuoi Badge</Text>
             <View style={styles.badgeContainer}>
               <View style={styles.badge}></View>
@@ -255,9 +398,7 @@ export default function AboutScreen() {
               <View style={styles.badge}></View>
             </View>
 
-            {/*//! FINE BADGE*/}
-
-            {/*//*CONTAINER PRENOTA PC*/}
+            {/* SEZIONE PRENOTAZIONI */}
             <View style={styles.PcAndEventContainer}>
               <TouchableOpacity onPress={supportLink}>
                 <View style={styles.supportContainer}> 
@@ -272,10 +413,9 @@ export default function AboutScreen() {
                   <Image style={styles.EventImage} source={require('../../assets/images/calendar.png')} />
                 </View>
               </TouchableOpacity>
-
             </View>
 
-            {/*//*CONTAINER SUPPORTO E SOCIAL*/}
+            {/* SEZIONE SUPPORTO E SOCIAL */}
             <View style={styles.supportAndSocialContainer}>
               <TouchableOpacity onPress={openModal}>
                 <View style={styles.supportContainer}> 
@@ -284,7 +424,7 @@ export default function AboutScreen() {
                 </View>
               </TouchableOpacity>
               <View style={styles.space}></View>
-              <TouchableOpacity onPress={socialLink}> {/*openSocialModal per aprire il modal social*/}
+              <TouchableOpacity onPress={socialLink}>
                 <View style={styles.supportContainer}> 
                   <Text style={styles.supportAndSocialText} allowFontScaling={false}>Social</Text>
                   <Image style={styles.socialImage} source={require('../../assets/images/socialImg.png')} />
@@ -292,13 +432,12 @@ export default function AboutScreen() {
               </TouchableOpacity>
             </View>
 
-            {/*//! FINE CONTAINER SUPPORTO E SOCIAL*/}
-
+            {/* MODALE SUPPORTO */}
             <Modal
               animationType="fade"
               transparent={true}
               visible={popupVisible}
-              onRequestClose={closeModal} // Chiude il modal su Android col tasto Indietro
+              onRequestClose={closeModal}
             >
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
@@ -310,7 +449,7 @@ export default function AboutScreen() {
                       Linking.openURL("https://wa.me/393895892074");
                       setTimeout(() => {
                         closeModal();
-                      }, 300); // Ritardo per evitare problemi di chiusura del modal
+                      }, 300);
                     }}>
                       <Text style={styles.buttonText} allowFontScaling={false}>Whatsapp</Text>
                     </TouchableOpacity>
@@ -319,16 +458,11 @@ export default function AboutScreen() {
                       mail();
                       setTimeout(() => {
                         closeModal();
-                      }, 300); // Ritardo per evitare problemi di chiusura del modal
+                      }, 300);
                     }}> 
-                    
                       <Text style={styles.buttonText} allowFontScaling={false}>Email</Text>
                     </TouchableOpacity>
-                    
-                    
                   </View>
-                  
-                  
 
                   <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                     <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
@@ -337,6 +471,7 @@ export default function AboutScreen() {
               </View>
             </Modal>
 
+            {/* MODALE LOGIN */}
             <Modal
               animationType="fade"
               transparent={true}
@@ -346,8 +481,8 @@ export default function AboutScreen() {
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
                   <Text style={modalTitleStyle} allowFontScaling={false}>Login</Text>
-                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} />
-                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} />
+                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='username' autoComplete='email'/>
+                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} textContentType="password" autoComplete="current-password"/>
 
                   <View style ={styles.supportButton}>
                     <TouchableOpacity style={styles.saveButton} onPress={() => {setLoginPopupVisible(false); loginUser();}}>
@@ -360,6 +495,7 @@ export default function AboutScreen() {
 
                   <TouchableOpacity style={styles.registerButton} onPress={() => {
                     setLoginPopupVisible(false);
+                    setAuthStatus(null);
                     setRegisterPopupVisible(true);
                   }}>
                     <Text style={styles.buttonText} allowFontScaling={false}>Registrati</Text>
@@ -368,6 +504,7 @@ export default function AboutScreen() {
               </View>
             </Modal>
 
+            {/* MODALE REGISTRAZIONE */}
             <Modal
               animationType="fade"
               transparent={true}
@@ -377,16 +514,31 @@ export default function AboutScreen() {
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
                   <Text style={modalTitleStyle} allowFontScaling={false}>Registrazione</Text>
-                  <TextInput placeholder="Nome"  style={styles.input} onChangeText={setNome} />
-                  <TextInput placeholder="Cognome"  style={styles.input} onChangeText={setCognome} />
-                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} />
-                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} />
+                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} >{authStatus}</Text>
+                  <TextInput placeholder="Nome"  style={styles.input} onChangeText={setNome} autoCapitalize='words' value={nome}/>
+                  <TextInput placeholder="Cognome"  style={styles.input} onChangeText={setCognome} autoCapitalize='words' value={cognome}/>
+                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='emailAddress' autoComplete='email' value={email}/>
+                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} textContentType="newPassword" passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special" autoComplete='new-password' value={password}/>
+                  <TextInput placeholder="Conferma Password" secureTextEntry={true} style={styles.input} onChangeText={setPasswordConfirm} textContentType="newPassword" passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special" autoComplete='new-password' value={passwordConfirm}/>
+
+                  <View style={styles.checkboxContainer}>
+                    <Checkbox
+                      value={TermsAccepted}
+                      onValueChange={setTermsAccepted}
+                      color={TermsAccepted ? '#01722B' : undefined}
+                      style={styles.checkbox}
+                    />
+                    {/* handlePresentModalPress */}
+                    <Text style={[styles.checkboxLabel, { color: isDark ? '#fff' : '#000' }]} onPress={() => { setRegisterPopupVisible(false); setTermsModalVisible(true); }}>
+                      Accetto i termini e le condizioni
+                    </Text>
+                  </View>
 
                   <View style ={styles.supportButton}>
-                    <TouchableOpacity style={styles.saveButton} onPress={() => {setRegisterPopupVisible(false); registerUser();}}>
+                    <TouchableOpacity style={styles.saveButton} onPress={() => {registerUser();}}>
                         <Text style={styles.buttonText} allowFontScaling={false}>Registrati</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.closeButton} onPress={() => setRegisterPopupVisible(false)}>
+                      <TouchableOpacity style={styles.closeButton} onPress={() =>{setRegisterPopupVisible(false); setAuthStatus(null); setNome(''); setCognome(''); setEmail(''); setPassword(''); setPasswordConfirm(''); setTermsAccepted(false);}}>
                         <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
                       </TouchableOpacity>
                   </View>
@@ -394,53 +546,7 @@ export default function AboutScreen() {
               </View>
             </Modal>
 
-            {/* <Modal
-              animationType="fade"
-              transparent={true}
-              visible={socialPopUpVisible}
-              onRequestClose={closeSocialModal} // Chiude il modal su Android col tasto Indietro
-            >
-              <View style={styles.modalContainer}>
-                <View style={modalContentStyle}>
-                  <Text style={modalTitleStyle} allowFontScaling={false}>Social</Text>
-                  <Text style={modalTextStyle} allowFontScaling={false}>Seguici sui nostri social!</Text>
-
-                  <View style ={styles.supportButton}>
-                    <TouchableOpacity style={styles.whatsappButton} onPress={() => {
-                      Linking.openURL("https://wa.me/393895892074");
-                      setTimeout(() => {
-                        closeSocialModal();
-                      }, 300); // Ritardo per evitare problemi di chiusura del modal
-                    }}>
-                      <Text style={styles.buttonText} allowFontScaling={false}>Whatsapp</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.siteButton} onPress={() => {
-                      socialLink();
-                      setTimeout(() => {
-                        closeSocialModal();
-                      }, 300); // Ritardo per evitare problemi di chiusura del modal
-                    }}> 
-                    
-                      <Text style={styles.buttonText} allowFontScaling={false}>Social</Text>
-                    </TouchableOpacity>
-                    
-                    
-                  </View>
-                  
-                  
-
-                  <TouchableOpacity style={styles.closeButton} onPress={closeSocialModal}>
-                    <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal> */}
-
-            <View style={styles.infoContainer}>
-              
-
-            
+            {/* MODALE NOME UTENTE */}
             <Modal
               animationType="fade"
               transparent={true}
@@ -472,15 +578,53 @@ export default function AboutScreen() {
                 </View>
               </View>
             </Modal>
-          </View>
+
+            {/* MODALE TERMINI E CONDIZIONI */}
+            <Modal
+              animationType="fade"
+              transparent={true}
+              visible={termsModalVisible}
+              onRequestClose={() => setTermsModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={modalContentStyle}>
+                  <Text style={modalTitleStyle} allowFontScaling={false}>Termini e Condizioni</Text>
+                  <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
+                    <Text style={modalTextStyle} allowFontScaling={false}>
+                      {/* Inserisci qui i termini e condizioni completi */}
+                      {termsAndConditions}
+                     </Text>
+                  </ScrollView>
+                  <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
+                    <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            
+
           </View>
         </ScrollView>
+        {/* BOTTOM SHEET MODAL (menu dal basso)
+
+           <BottomSheetModal
+                       ref={bottomSheetModalRef}
+                       onChange={handleSheetChanges}
+                       stackBehavior='replace'
+                     >
+                       <BottomSheetView style={styles.contentContainer}>
+                         <Text>Awesome 🎉</Text>
+                       </BottomSheetView>
+                   </BottomSheetModal> */}
+
       </Screen>
     </ScreenContainer>
     </SafeAreaView>
+    // {/* </BottomSheetModalProvider>
+    // </GestureHandlerRootView> */}
   );
 }
-
 const styles = StyleSheet.create({
 
   scroll: {
@@ -792,6 +936,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
+    overflow: 'hidden',
   },
 
   registerButton: {
@@ -800,6 +945,70 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 30,
     minWidth: 100,
+  },
+
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+  },
+
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#01722B',
+    backgroundColor: '#fff',
+  },
+
+  checkboxLabel: {
+    marginLeft: 8,
+    color: '#000',
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+  },
+
+  bottomModal: {
+  justifyContent: 'flex-end',
+  margin: 0,
+},
+bottomContent: {
+  backgroundColor: '#fff',
+  padding: 20,
+  borderTopLeftRadius: 20,
+  borderTopRightRadius: 20,
+  minHeight: 180,
+},
+handle: {
+  width: 40,
+  height: 4,
+  backgroundColor: '#ccc',
+  borderRadius: 2,
+  alignSelf: 'center',
+  marginBottom: 10,
+},
+
+bottomSheetContent: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+bottomButton: {
+  backgroundColor: '#01722B',
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  borderRadius: 30,
+  alignSelf: 'center',
+  marginTop: 20,
+},
+
+contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+    minHeight: 180,
+    zIndex: 1000,
   },
 
 });

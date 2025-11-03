@@ -22,11 +22,9 @@ export default function RootLayout() {
     return null;
   }
   return (
-    
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-    
   );
 }
