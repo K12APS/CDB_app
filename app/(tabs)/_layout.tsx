@@ -292,9 +292,7 @@ export default function TabLayout() {
             ios: <Icon sf="person.fill" />,
             android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="face-man" />} />,
           })}
-        </NativeTabs.Trigger>
-            
-        
+        </NativeTabs.Trigger>     
      </NativeTabs>
 
   );
