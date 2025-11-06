@@ -38,6 +38,10 @@ export default function AboutScreen() {
         const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
           headers: { Authorization: `${token}` }
         });
+
+        if (response.headers['x-new-token']) {
+          await AsyncStorage.setItem('token', response.headers['x-new-token']);
+        }
         console.log('response:', response.data.user.nome);
         await AsyncStorage.setItem('userName', response.data.user.nome);
       } catch (error) {
