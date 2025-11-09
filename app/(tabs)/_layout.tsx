@@ -294,7 +294,14 @@ export default function TabLayout() {
             android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="face-man" />} />,
           })}
         </NativeTabs.Trigger>   
-  
+          
+        <NativeTabs.Trigger name="settings">
+          <Label>Impostazioni</Label>
+          {Platform.select({
+            ios: <Icon sf="gearshape.fill" />,
+            android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="cog-outline" />} />,
+          })}
+        </NativeTabs.Trigger>
      </NativeTabs>
 
   );

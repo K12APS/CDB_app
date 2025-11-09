@@ -30,26 +30,44 @@ enableScreens();
 
 export default function AboutScreen() {
 //! da spostare in un file separato che verifica prima di tutto se l'utente è loggato 
-  useEffect(() => {
-    console.log('++++++++++++++++++++++++++++++++')
-    const loadInfo = async () => {
+
+
+  const loadInfo = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        console.log('TOKEN:   ', token);
+        if(!token) {
+          await AsyncStorage.setItem('userName', 'Accedi/registrati');
+          return false;
+        }
+
         const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
           headers: { Authorization: `${token}` }
         });
+
+        console.log('RISPOSTA', response)
+
+        if (response.status !== 200) {
+          await AsyncStorage.setItem('userName', 'Accedi/registrati');
+          return false;
+        }
 
         if (response.headers['x-new-token']) {
           await AsyncStorage.setItem('token', response.headers['x-new-token']);
         }
         console.log('response:', response.data.user.nome);
+        setUserName(response.data.user.nome);
         await AsyncStorage.setItem('userName', response.data.user.nome);
+        return true;
       } catch (error) {
         console.error(error);
+        await AsyncStorage.setItem('userName', 'Accedi/registrati');
       }
     };
 
-    loadInfo(); // chiama la funzione async
+    useEffect(() => {
+      console.log('++++++++++++++++++++++++++++++++')
+      loadInfo(); // chiama la funzione async
   }, []);
 
 
@@ -209,7 +227,10 @@ Per domande, segnalazioni o richieste di assistenza:
         email: email,
         password: password
       })
-      .then(response => {
+      .then(async (response) => {
+
+        await AsyncStorage.setItem('token', response.data.token);
+
         setAuthStatus('Login effettuato con successo!');
         setAuthColor('green');
 
@@ -221,6 +242,8 @@ Per domande, segnalazioni o richieste di assistenza:
           setEmail('');
           setPassword('');
         }, 2000);
+
+        loadInfo();
       })
       .catch(error => {
         if(error.response && error.response.status === 401) {
@@ -425,7 +448,7 @@ Per domande, segnalazioni o richieste di assistenza:
             <View style={styles.userTab}>
               <TouchableOpacity onPress={() => {login()}}>
                 <Text style={styles.userName} allowFontScaling={false}>
-                  {userName ? userName : 'Inserisci il tuo nome'}
+                  {userName ? userName : 'Accedi/registrati'}
                 </Text>              
               </TouchableOpacity>
               <View style={styles.infoContainer}>
