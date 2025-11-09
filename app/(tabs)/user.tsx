@@ -9,7 +9,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Checkbox } from 'expo-checkbox';
+
+
+import { useContext } from 'react';
+import { UserContext } from '../../context/userContext';
+
+import { loginUser, registerUser } from '@/utils/authUtils';
+
+import LoginModal from '../../components/loginModal';
+import RegisterModal from '../../components/RegisterModal';
+
+import TermsAndConditions from '@/components/Terms';
+
+
 // import {
 //   BottomSheetModal,
 //   BottomSheetView,
@@ -35,7 +47,6 @@ export default function AboutScreen() {
   const loadInfo = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        console.log('TOKEN:   ', token);
         if(!token) {
           await AsyncStorage.setItem('userName', 'Accedi/registrati');
           return false;
@@ -45,8 +56,6 @@ export default function AboutScreen() {
           headers: { Authorization: `${token}` }
         });
 
-        console.log('RISPOSTA', response)
-
         if (response.status !== 200) {
           await AsyncStorage.setItem('userName', 'Accedi/registrati');
           return false;
@@ -55,7 +64,6 @@ export default function AboutScreen() {
         if (response.headers['x-new-token']) {
           await AsyncStorage.setItem('token', response.headers['x-new-token']);
         }
-        console.log('response:', response.data.user.nome);
         setUserName(response.data.user.nome);
         await AsyncStorage.setItem('userName', response.data.user.nome);
         return true;
@@ -66,57 +74,8 @@ export default function AboutScreen() {
     };
 
     useEffect(() => {
-      console.log('++++++++++++++++++++++++++++++++')
       loadInfo(); // chiama la funzione async
   }, []);
-
-
-  const termsAndConditions = `
-**Termini e Condizioni d’Uso**
-
-**1. Informazioni generali**  
-L’applicazione **CDBapp** (di seguito “l’App”) è sviluppata e gestita da **K12 – APS**, associazione senza scopo di lucro con sede in Italia e sito ufficiale [www.coderdojobrianza.it](https://www.coderdojobrianza.it).  
-L’utilizzo dell’App implica l’accettazione completa dei presenti Termini e Condizioni. Se non accetti anche solo una parte di queste condizioni, ti invitiamo a non utilizzare l’App.
-
-**2. Destinatari dell’App**  
-L’App è destinata a utenti di età **superiore ai 14 anni**.  
-Utilizzando l’App dichiari di avere almeno 14 anni e di possedere la capacità legale di accettare i presenti Termini.
-
-**3. Funzionalità dell’App**  
-CDBapp consente di:  
-• Visualizzare i prossimi eventi organizzati da K12 – APS  
-• Ricevere notifiche sugli eventi  
-• Iscriversi alla newsletter  
-• Consultare gli ultimi articoli pubblicati sul blog ufficiale  
-• Registrarsi per segnare la propria partecipazione e monitorare i progressi  
-
-**4. Registrazione e account utente**  
-Per utilizzare alcune funzionalità è necessario creare un account, fornendo **nome, cognome, indirizzo email e una password**.  
-L’utente è responsabile della riservatezza delle proprie credenziali e di tutte le attività svolte con il proprio account.  
-K12 – APS non potrà essere ritenuta responsabile per eventuali accessi non autorizzati dovuti a negligenza dell’utente.
-
-**5. Protezione dei dati personali**  
-I dati forniti dagli utenti vengono trattati nel rispetto del **Regolamento (UE) 2016/679 (GDPR)** e della normativa italiana vigente.  
-Le informazioni personali (nome, cognome, email e password cifrata) vengono utilizzate esclusivamente per consentire il funzionamento dell’App e la gestione delle attività associative.  
-Per maggiori dettagli, consulta l’[Informativa sulla Privacy](https://www.coderdojobrianza.it/chi-siamo/tutela-della-privacy-con-coderdojo-brianza/).
-
-**6. Proprietà intellettuale**  
-Tutti i contenuti, loghi, testi e immagini presenti nell’App sono di proprietà di **K12 – APS** o utilizzati con licenza.  
-È vietata la copia, la distribuzione o la modifica dei contenuti senza autorizzazione scritta.
-
-**7. Limitazione di responsabilità**  
-K12 – APS non garantisce il funzionamento continuo, privo di errori o interruzioni dell’App.  
-L’App è fornita “così com’è” e l’associazione non è responsabile per eventuali danni diretti o indiretti derivanti dall’utilizzo dell’App.
-
-**8. Modifiche ai termini**  
-K12 – APS si riserva il diritto di modificare in qualsiasi momento i presenti Termini e Condizioni.  
-Le modifiche saranno comunicate tramite aggiornamenti dell’App o pubblicazione sul sito ufficiale.
-
-**9. Contatti**  
-Per domande, segnalazioni o richieste di assistenza:  
-📧 info@coderdojobrianza.it  
-🌐 www.coderdojobrianza.it
-`;
 
   // Tema chiaro/scuro
   const colorScheme = useColorScheme();
@@ -130,7 +89,8 @@ Per domande, segnalazioni o richieste di assistenza:
   // Stati per i vari popup/modal
   const [popupVisible, setpopupVisible] = useState(false);
   const [nameModalVisible, setNameModalVisible] = useState(false);
-  const [userName, setUserName] = useState('');
+  const { userName, reloadUser, setUserName } = useContext(UserContext);
+  const {isLogged, setIsLogged} = useContext(UserContext);
   const [tempName, setTempName] = useState('');
   const [socialPopUpVisible, setSocialPopUpVisible] = useState(false);
   const [loginPopupVisible, setLoginPopupVisible] = useState(false);
@@ -157,19 +117,19 @@ Per domande, segnalazioni o richieste di assistenza:
 
   // Carica il nome salvato localmente all'avvio
   useEffect(() => {
-    loadUserName();
+     reloadUser();
   }, []);
 
-  const loadUserName = async () => {
-    try {
-      const savedName = await AsyncStorage.getItem('userName');
-      if (savedName !== null) {
-        setUserName(savedName);
-      }
-    } catch (error) {
-      console.error('Error loading name:', error);
-    }
-  };
+  // const loadUserName = async () => {
+  //   try {
+  //     const savedName = await AsyncStorage.getItem('userName');
+  //     if (savedName !== null) {
+  //       setUserName(savedName);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading name:', error);
+  //   }
+  // };
 
   // Gestione modale nome
   const insertName = () => {
@@ -181,17 +141,6 @@ Per domande, segnalazioni o richieste di assistenza:
   const login = () => {
     setLoginPopupVisible(true);
   }
-
-  // Stati per i campi di input (login/registrazione)
-  const [nome, setNome] = useState('');
-  const [cognome, setCognome] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [TermsAccepted, setTermsAccepted] = useState(false);
-
-  const [authStatus, setAuthStatus] = useState<string | null>(null);
-  const [authColor, setAuthColor] = useState('red');
 
 // // ref
 //   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -205,164 +154,170 @@ Per domande, segnalazioni o richieste di assistenza:
 //   }, []);
 
   // Funzione login
-  const loginUser = () => {
+  // const loginUser = () => {
 
-    setEmail(email.trim().toLowerCase());
+  //   setEmail(email.trim().toLowerCase());
     
-    if(!email || !password) {
-      setAuthStatus('Compila tutti i campi');
-      setAuthColor('red');
-      return;
-    }
+  //   if(!email || !password) {
+  //     setAuthStatus('Compila tutti i campi');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    if(!verifyEmail(email)) {
-      setAuthStatus('Inserisci un indirizzo email valido.');
-      setAuthColor('red');
-      return;
-    }
-
-
-    try {
-      axios.post('https://api.coderdojobrianza.it:3000/login', {
-        email: email,
-        password: password
-      })
-      .then(async (response) => {
-
-        await AsyncStorage.setItem('token', response.data.token);
-
-        setAuthStatus('Login effettuato con successo!');
-        setAuthColor('green');
+  //   if(!verifyEmail(email)) {
+  //     setAuthStatus('Inserisci un indirizzo email valido.');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
 
-        // nascondi il messaggio dopo 2 secondi e chiudi il popup
-        setTimeout(() => {
-          setLoginPopupVisible(false);
-          setAuthStatus(null);
-          setEmail('');
-          setPassword('');
-        }, 2000);
+  //   try {
+  //     axios.post('https://api.coderdojobrianza.it:3000/login', {
+  //       email: email,
+  //       password: password
+  //     })
+  //     .then(async (response) => {
 
-        loadInfo();
-      })
-      .catch(error => {
-        if(error.response && error.response.status === 401) {
-        setAuthStatus('Email o password errati.');
-        setAuthColor('red');
-        } else {
-          setAuthStatus('Si è verificato un errore durante il login.');
-          setAuthColor('red');
-        }
+  //       await AsyncStorage.setItem('token', response.data.token);
+  //       setIsLogged(true);
+  //       console.log(isLogged);
 
-      });
-    } catch (error) {
+  //       setAuthStatus('Login effettuato con successo!');
+  //       setAuthColor('green');
+
+
+  //       // nascondi il messaggio dopo 2 secondi e chiudi il popup
+  //       setTimeout(() => {
+  //         setLoginPopupVisible(false);
+  //         setAuthStatus(null);
+  //         setEmail('');
+  //         setPassword('');
+  //       }, 2000);
+
+  //       loadInfo();
+  //     })
+  //     .catch(error => {
+  //       if(error.response && error.response.status === 401) {
+  //       setAuthStatus('Email o password errati.');
+  //       setAuthColor('red');
+  //       } else {
+  //         setAuthStatus('Si è verificato un errore durante il login.');
+  //         setAuthColor('red');
+  //       }
+
+  //     });
+  //   } catch (error) {
       
-    }
-  }
+  //   }
+  // }
 
-  //funzione verifica email
-  const verifyEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
-    return regex.test(email);
-  };
+   
 
-  //funzione verifica password
-  const verifyPassword = (password: string) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,25}$/; //minimo 10 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale massimo 25 caratteri
-    return regex.test(password);
-  }
+  // //funzione verifica email
+  // const verifyEmail = (email: string) => {
+  //   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+  //   return regex.test(email);
+  // };
+
+  // //funzione verifica password
+  // const verifyPassword = (password: string) => {
+  //   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,25}$/; //minimo 10 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale massimo 25 caratteri
+  //   return regex.test(password);
+  // }
 
   // Funzione registrazione
-  const registerUser = () => {
-    console.log('nome:', nome);
-    console.log('cognome:', cognome);
-    console.log('email:', email);
-    console.log('password:', password);
+  // const registerUser = () => {
+  //   console.log('nome:', nome);
+  //   console.log('cognome:', cognome);
+  //   console.log('email:', email);
+  //   console.log('password:', password);
 
-    setEmail(email.trim().toLowerCase());
-    setNome(nome.trim());
-    setCognome(cognome.trim());
+  //   setEmail(email.trim().toLowerCase());
+  //   setNome(nome.trim());
+  //   setCognome(cognome.trim());
 
-    //verifica lunghezza campi
-    if(nome.length < 2 || cognome.length < 2) {
-      setAuthStatus('Nome e cognome devono contenere almeno 2 caratteri.');
-      setAuthColor('red');
-      return;
-    }
+  //   //verifica lunghezza campi
+  //   if(nome.length < 2 || cognome.length < 2) {
+  //     setAuthStatus('Nome e cognome devono contenere almeno 2 caratteri.');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    //verifica inserimento campi
-    if(!nome || !cognome || !email || !password) {
-      setAuthStatus('Compila tutti i campi');
-      setAuthColor('red');
-      return;
-    }
+  //   //verifica inserimento campi
+  //   if(!nome || !cognome || !email || !password) {
+  //     setAuthStatus('Compila tutti i campi');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    //verifica email valida
-    if(!verifyEmail(email)) {
-      setAuthStatus('Inserisci un indirizzo email valido.');
-      setAuthColor('red');
-      return;
-    }
+  //   //verifica email valida
+  //   if(!verifyEmail(email)) {
+  //     setAuthStatus('Inserisci un indirizzo email valido.');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    //verifica password
-    //!! if(!verifyPassword(password)) {
-    //   console.log('password non valida');
-    //   setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
-    //   setAuthColor('red');
-    //   return;
-    // }
+  //   //verifica password
+  //   //!! if(!verifyPassword(password)) {
+  //   //   console.log('password non valida');
+  //   //   setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
+  //   //   setAuthColor('red');
+  //   //   return;
+  //   // }
 
-    //verifica conferma password
-    if(password !== passwordConfirm) {
-      setAuthStatus('Le password non corrispondono.');
-      setAuthColor('red');
-      return;
-    }
+  //   //verifica conferma password
+  //   if(password !== passwordConfirm) {
+  //     setAuthStatus('Le password non corrispondono.');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    //verifica accettazione termini
-    if(!TermsAccepted) {
-      setAuthStatus('Devi accettare i termini e condizioni.');
-      setAuthColor('red');
-      return;
-    }
+  //   //verifica accettazione termini
+  //   if(!TermsAccepted) {
+  //     setAuthStatus('Devi accettare i termini e condizioni.');
+  //     setAuthColor('red');
+  //     return;
+  //   }
 
-    axios.post('https://api.coderdojobrianza.it:3000/register', {
-      nome: nome,
-      cognome: cognome,
-      email: email,
-      password: password,
-    })
+  //   axios.post('https://api.coderdojobrianza.it:3000/register', {
+  //     nome: nome,
+  //     cognome: cognome,
+  //     email: email,
+  //     password: password,
+  //   })
 
-    .then(async (response) => {
-      await AsyncStorage.setItem('token', response.data.token);
-      console.log(response.data);
-      console.log(await AsyncStorage.getItem('token'));
-      // Svuota i campi dopo la registrazione
-      setPassword('');
-      setEmail('');
-      setCognome('');
-      setNome('');
-      setPasswordConfirm('');
-      setTermsAccepted(false);
+  //   .then(async (response) => {
+  //     await AsyncStorage.setItem('token', response.data.token);
+  //     console.log(response.data);
+  //     console.log(await AsyncStorage.getItem('token'));
+  //     loadInfo();
+  //     setIsLogged(true);
+  //     // Svuota i campi dopo la registrazione
+  //     setPassword('');
+  //     setEmail('');
+  //     setCognome('');
+  //     setNome('');
+  //     setPasswordConfirm('');
+  //     setTermsAccepted(false);
 
-      setAuthStatus('Login effettuato con successo!');
-      setAuthColor('green');
+  //     setAuthStatus('Login effettuato con successo!');
+  //     setAuthColor('green');
 
-      // nascondi il messaggio dopo 2 secondi e chiudi il popup
-      setTimeout(() => {
-        setRegisterPopupVisible(false);
-        setAuthStatus(null);
+  //     // nascondi il messaggio dopo 2 secondi e chiudi il popup
+  //     setTimeout(() => {
+  //       setRegisterPopupVisible(false);
+  //       setAuthStatus(null);
         
-      }, 2000);
-    })
-    .catch(error => {
-      if (error.response && error.response.status === 409) {
-        setAuthStatus('Questa email è già registrata');
-      } else {
-        setAuthStatus('Si è verificato un errore durante la registrazione');
-      }
-    });
-  }
+  //     }, 2000);
+  //   })
+  //   .catch(error => {
+  //     if (error.response && error.response.status === 409) {
+  //       setAuthStatus('Questa email è già registrata');
+  //     } else {
+  //       setAuthStatus('Si è verificato un errore durante la registrazione');
+  //     }
+  //   });
+  // }
 
   // Chiede una recensione sull'App (solo iOS)
   const askReview = async () => {
@@ -547,90 +502,29 @@ Per domande, segnalazioni o richieste di assistenza:
             </Modal>
 
             {/* MODALE LOGIN */}
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={loginPopupVisible}
-              onRequestClose={() => setLoginPopupVisible(false)}
-            >
-              <View style={styles.modalContainer}>
-                <View style={modalContentStyle}>
-                  <Text style={modalTitleStyle} allowFontScaling={false}>Login</Text>
-                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} allowFontScaling={false}>{authStatus}</Text>
-                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='username' autoComplete='email'/>
-                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} textContentType="password" autoComplete="current-password"/>
+            <LoginModal
+              loginPopupVisible={loginPopupVisible}
+              setLoginPopupVisible={setLoginPopupVisible}
+              setIsLogged={setIsLogged}
+              loginUser={loginUser}
+              loadInfo={loadInfo}
+              setRegisterPopupVisible={setRegisterPopupVisible}
+            />
 
-                  <View style ={styles.supportButton}>
-                    <TouchableOpacity style={styles.saveButton} onPress={() => {loginUser();}}>
-                        <Text style={styles.buttonText} allowFontScaling={false}>Accedi</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.closeButton} onPress={() => {setLoginPopupVisible(false); setAuthStatus(null); setEmail(''); setPassword('');}}>
-                        <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                      </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity style={styles.registerButton} onPress={() => {
-                    setLoginPopupVisible(false);
-                    setAuthStatus(null);
-                    setRegisterPopupVisible(true);
-                  }}>
-                    <Text style={styles.buttonText} allowFontScaling={false}>Registrati</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
 
             {/* MODALE REGISTRAZIONE */}
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={registerPopupVisible}
-              onRequestClose={() => setRegisterPopupVisible(false)}
-            >
-              <View style={styles.modalContainer}>
-                <View style={modalContentStyle}>
-                  <Text style={modalTitleStyle} allowFontScaling={false}>Registrazione</Text>
-                  <Text style={{ color: authColor, marginBottom: 10, fontSize: 14 }} allowFontScaling={false}>{authStatus}</Text>
-                  <TextInput placeholder="Nome"  style={styles.input} onChangeText={setNome} autoCapitalize='words' value={nome}/>
-                  <TextInput placeholder="Cognome"  style={styles.input} onChangeText={setCognome} autoCapitalize='words' value={cognome}/>
-                  <TextInput placeholder="Email"  style={styles.input} onChangeText={setEmail} keyboardType='email-address' inputMode='email' autoCapitalize='none' autoCorrect={false} textContentType='emailAddress' autoComplete='email' value={email}/>
-                  <TextInput placeholder="Password" secureTextEntry={true} style={styles.input} onChangeText={setPassword} textContentType="newPassword" passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special" autoComplete='new-password' value={password}/>
-                  <TextInput placeholder="Conferma Password" secureTextEntry={true} style={styles.input} onChangeText={setPasswordConfirm} textContentType="newPassword" passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special" autoComplete='new-password' value={passwordConfirm}/>
-
-                  <View style={styles.checkboxContainer}>
-                    <Checkbox
-                      value={TermsAccepted}
-                      onValueChange={setTermsAccepted}
-                      color={TermsAccepted ? '#01722B' : undefined}
-                      style={styles.checkbox}
-                    />
-                    {/* handlePresentModalPress */}
-                    <Text style={[styles.checkboxLabel, { color: isDark ? '#fff' : '#000' }]} onPress={() => { setRegisterPopupVisible(false); setTermsModalVisible(true); }}>
-                      Accetto i termini e le condizioni
-                    </Text>
-                  </View>
-
-                  <View style ={styles.supportButton}>
-                    <TouchableOpacity style={styles.saveButton} onPress={() => {registerUser();}}>
-                        <Text style={styles.buttonText} allowFontScaling={false}>Registrati</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.closeButton} onPress={() =>{setRegisterPopupVisible(false); setAuthStatus(null); setNome(''); setCognome(''); setEmail(''); setPassword(''); setPasswordConfirm(''); setTermsAccepted(false);}}>
-                        <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-
-                      </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity style={styles.registerButton} onPress={() => {
-                    setRegisterPopupVisible(false);
-                    setAuthStatus(null);
-                    setLoginPopupVisible(true);
-                  }}>
-                    <Text style={styles.buttonText} allowFontScaling={false}>Accedi</Text>
-                  </TouchableOpacity>
-
-                </View>
-              </View>
-            </Modal>
+            <RegisterModal
+              registerPopupVisible={registerPopupVisible}
+              setRegisterPopupVisible={setRegisterPopupVisible}
+              loadInfo={loadInfo}
+              modalContentStyle={modalContentStyle}
+              modalTitleStyle={modalTitleStyle}
+              isDark = {isDark}
+              setTermsModalVisible={setTermsModalVisible}
+              registerUser={registerUser}
+              setIsLogged={setIsLogged}
+              setLoginPopupVisible={setLoginPopupVisible}
+            />
 
             {/* MODALE NOME UTENTE */}
             <Modal
@@ -675,18 +569,13 @@ Per domande, segnalazioni o richieste di assistenza:
               <View style={styles.modalContainer}>
                 <View style={modalContentStyle}>
                   <Text style={modalTitleStyle} allowFontScaling={false}>Termini e Condizioni</Text>
-                  <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
-                    <Text style={modalTextStyle} allowFontScaling={false}>
-                      {/* Inserisci qui i termini e condizioni completi */}
-                      {termsAndConditions}
-                     </Text>
-                  </ScrollView>
-                  <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
-                    <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                  </TouchableOpacity>
+                    <TermsAndConditions />
+                    <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
+                      <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            </Modal>
+              </Modal>
 
             
 

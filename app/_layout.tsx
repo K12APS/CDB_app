@@ -2,6 +2,7 @@ import { Stack} from 'expo-router';
 import {useEffect} from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { UserProvider } from '../context/userContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,9 +23,11 @@ export default function RootLayout() {
     return null;
   }
   return (
+    <UserProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
+    </UserProvider>
   );
 }

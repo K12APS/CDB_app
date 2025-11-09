@@ -8,6 +8,19 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import HeaderBar from "@/components/HeaderBar";
 
+import { useContext } from 'react';
+import { UserContext } from '../../context/userContext';
+import { isLoaded } from 'expo-font';
+
+import LoginModal from '../../components/loginModal';
+import RegisterModal from '../../components/RegisterModal';
+
+import { loginUser, registerUser } from '@/utils/authUtils';
+
+import TermsAndConditions from '@/components/Terms';
+
+
+
 enableScreens();
 
 export default function SettingsScreen() {
@@ -20,11 +33,55 @@ export default function SettingsScreen() {
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const { setUserName } = useContext(UserContext);
+  const { setIsLogged, isLogged } = useContext(UserContext);
+
+  const [loginPopupVisible, setLoginPopupVisible] = useState(false);
+  const [registerPopupVisible, setRegisterPopupVisible] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
+  
+
+  const login = () => {
+    setLoginPopupVisible(true);
+  }
+
+  const loadInfo = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if(!token) {
+          await AsyncStorage.setItem('userName', 'Accedi/registrati');
+          return false;
+        }
+
+        const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
+          headers: { Authorization: `${token}` }
+        });
+
+        if (response.status !== 200) {
+          await AsyncStorage.setItem('userName', 'Accedi/registrati');
+          return false;
+        }
+
+        if (response.headers['x-new-token']) {
+          await AsyncStorage.setItem('token', response.headers['x-new-token']);
+        }
+        setUserName(response.data.user.nome);
+        await AsyncStorage.setItem('userName', response.data.user.nome);
+        return true;
+      } catch (error) {
+        console.error(error);
+        await AsyncStorage.setItem('userName', 'Accedi/registrati');
+      }
+    };
+
+  
 
   const logout = async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('userName');
+    setUserName('Accedi/registrati');
     setLogoutModalVisible(false);
+    setIsLogged(false);
     Alert.alert('Logout', 'Hai effettuato il logout con successo.');
     console.log('Token rimosso, utente disconnesso');
   };
@@ -52,17 +109,31 @@ export default function SettingsScreen() {
             <HeaderBar title="Impostazioni" />
             <View style={containerStyle}>
 
-              <TouchableOpacity style={styles.settingItem} onPress={() => setLogoutModalVisible(true)}>
-                <Text style={styles.settingText}>Esci dall’account</Text>
-              </TouchableOpacity>
+                {!isLogged ? (
+                    <TouchableOpacity
+                        style={styles.settingItem}
+                        onPress={() => {login();}}
+                    >
+                        <Text style={styles.settingText}>Accedi o Registrati</Text>
+                    </TouchableOpacity>
+                ) : (
+                <>
+                    <TouchableOpacity style={styles.settingItem} onPress={() => setLogoutModalVisible(true)}>
+                    <Text style={styles.settingText}>Esci dall’account</Text>
+                    </TouchableOpacity>
 
-              <TouchableOpacity style={styles.settingItem} onPress={() => setDeleteModalVisible(true)}>
-                <Text style={[styles.settingText, { color: 'red' }]}>Elimina account</Text>
-              </TouchableOpacity>
+                    <TouchableOpacity style={styles.settingItem} onPress={() => setDeleteModalVisible(true)}>
+                    <Text style={[styles.settingText, { color: 'red' }]}>Elimina account</Text>
+                    </TouchableOpacity>
 
-              <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Prossimamente', 'Funzione in sviluppo')}>
-                <Text style={styles.settingText}>Cambia password</Text>
-              </TouchableOpacity>
+                    <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Prossimamente', 'Funzione in sviluppo')}>
+                    <Text style={styles.settingText}>Cambia password</Text>
+                    </TouchableOpacity>
+                </>
+                )}
+
+
+             
 
               <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Prossimamente', 'Funzione in sviluppo')}>
                 <Text style={styles.settingText}>Notifiche</Text>
@@ -103,6 +174,50 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </Modal>
+
+              {/* MODALE LOGIN */}
+            <LoginModal
+              loginPopupVisible={loginPopupVisible}
+              setLoginPopupVisible={setLoginPopupVisible}
+              setIsLogged={setIsLogged}
+              loginUser={loginUser}
+              loadInfo={loadInfo}
+              setRegisterPopupVisible={setRegisterPopupVisible}
+            />
+
+
+            {/* MODALE REGISTRAZIONE */}
+            <RegisterModal
+              registerPopupVisible={registerPopupVisible}
+              setRegisterPopupVisible={setRegisterPopupVisible}
+              loadInfo={loadInfo}
+              modalContentStyle={modalContentStyle}
+              modalTitleStyle={modalTitleStyle}
+              isDark = {isDark}
+              setTermsModalVisible={setTermsModalVisible}
+              registerUser={registerUser}
+              setIsLogged={setIsLogged}
+              setLoginPopupVisible={setLoginPopupVisible}
+            />
+
+
+            {/* MODALE TERMINI E CONDIZIONI */}
+                        <Modal
+                          animationType="fade"
+                          transparent={true}
+                          visible={termsModalVisible}
+                          onRequestClose={() => setTermsModalVisible(false)}
+                        >
+                          <View style={styles.modalContainer}>
+                            <View style={modalContentStyle}>
+                              <Text style={modalTitleStyle} allowFontScaling={false}>Termini e Condizioni</Text>
+                                  <TermsAndConditions />
+                              <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
+                                <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </Modal>
 
             </View>
           </ScrollView>
@@ -203,5 +318,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontFamily: 'Poppins-Bold',
+  },
+  closeButton: {
+    backgroundColor: '#FFBE00',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+  },
+
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Poppins-Bold',
+    marginBottom: -2
   },
 });
