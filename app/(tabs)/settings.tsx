@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, Modal, ScrollView, useColorScheme, Alert } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Modal, ScrollView, useColorScheme, Alert, TextInput } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScreenContainer, Screen } from 'react-native-screens'; 
 import { enableScreens } from 'react-native-screens'; 
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import axios from 'axios';
 import HeaderBar from "@/components/HeaderBar";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { useContext } from 'react';
 import { UserContext } from '../../context/userContext';
@@ -39,10 +40,74 @@ export default function SettingsScreen() {
   const [loginPopupVisible, setLoginPopupVisible] = useState(false);
   const [registerPopupVisible, setRegisterPopupVisible] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
+  const [passwordChangeModalVisible, setPasswordChangeModalVisible] = useState(false);
+
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
+  const [authColor, setAuthColor] = useState<string>('green');
   
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const login = () => {
     setLoginPopupVisible(true);
+  }
+
+  const verifyPassword = (password: string) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,25}$/; //minimo 10 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale massimo 25 caratteri
+    return regex.test(password);
+  }
+
+  const changePassword = async () => {
+    //Alert.alert("Prossimamente", "Funzione in sviluppo")
+    const token = await AsyncStorage.getItem('token');
+    if(!token) {
+      //Alert.alert('Errore', 'Devi essere loggato per cambiare la password.');
+      setAuthStatus('Devi essere loggato per cambiare la password.');
+      setAuthColor('red');
+      return;
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      //Alert.alert('Errore', 'Le nuove password non corrispondono.');
+      setAuthStatus('Le nuove password non corrispondono.');
+      setAuthColor('red');
+      return;
+    }
+
+    if (!verifyPassword(newPassword)) {
+      //Alert.alert('Errore', 'La nuova password non soddisfa i requisiti.');
+      setAuthStatus('La nuova password non soddisfa i requisiti.');
+      setAuthColor('red');
+      return;
+    }
+
+    try {
+      const response = await axios.post('https://api.coderdojobrianza.it:3000/requestPasswordChange', 
+        {oldPassword, newPassword}, 
+        {headers: { Authorization: `${token}` }
+      });
+
+      if(response.status === 200) {
+        setOldPassword('');
+        setNewPassword('');
+        setNewPasswordConfirm('');
+        //Alert.alert('Successo', 'Password cambiata con successo.');
+        setAuthStatus('Password cambiata con successo.');
+        setAuthColor('green');
+        await AsyncStorage.setItem('token', response.data.token);
+      } else {
+        setAuthStatus('Impossibile cambiare la password.');
+        setAuthColor('red');
+      }
+    } catch (error) {
+      //Alert.alert('Errore', 'Si è verificato un errore durante il cambio della password.');
+      setAuthStatus('Si è verificato un errore durante il cambio della password.');
+      setAuthColor('red');
+    }
   }
 
   const loadInfo = async () => {
@@ -101,55 +166,91 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: isDark ? "#1E1E1E" : "#ffffff" }}
+      edges={["top", "left", "right"]}
+    >
       <ScreenContainer style={{ flex: 1 }}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style={isDark ? "light" : "dark"} />
         <Screen style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+          >
             <HeaderBar title="Impostazioni" />
             <View style={containerStyle}>
-
-                {!isLogged ? (
-                    <TouchableOpacity
-                        style={styles.settingItem}
-                        onPress={() => {login();}}
-                    >
-                        <Text style={styles.settingText}>Accedi o Registrati</Text>
-                    </TouchableOpacity>
-                ) : (
+              {!isLogged ? (
+                <TouchableOpacity
+                  style={styles.settingItem}
+                  onPress={() => {
+                    login();
+                  }}
+                >
+                  <Text style={styles.settingText}>Accedi o Registrati</Text>
+                </TouchableOpacity>
+              ) : (
                 <>
-                    <TouchableOpacity style={styles.settingItem} onPress={() => setLogoutModalVisible(true)}>
+                  <TouchableOpacity
+                    style={styles.settingItem}
+                    onPress={() => setLogoutModalVisible(true)}
+                  >
                     <Text style={styles.settingText}>Esci dall’account</Text>
-                    </TouchableOpacity>
+                  </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.settingItem} onPress={() => setDeleteModalVisible(true)}>
-                    <Text style={[styles.settingText, { color: 'red' }]}>Elimina account</Text>
-                    </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.settingItem}
+                    onPress={() => setDeleteModalVisible(true)}
+                  >
+                    <Text style={[styles.settingText, { color: "red" }]}>
+                      Elimina account
+                    </Text>
+                  </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Prossimamente', 'Funzione in sviluppo')}>
+                  <TouchableOpacity
+                    style={styles.settingItem}
+                    onPress={() =>
+                      //Alert.alert("Prossimamente", "Funzione in sviluppo")
+                      setPasswordChangeModalVisible(true)
+                    }
+                  >
                     <Text style={styles.settingText}>Cambia password</Text>
-                    </TouchableOpacity>
+                  </TouchableOpacity>
                 </>
-                )}
+              )}
 
-
-             
-
-              <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Prossimamente', 'Funzione in sviluppo')}>
+              <TouchableOpacity
+                style={styles.settingItem}
+                onPress={() =>
+                  Alert.alert("Prossimamente", "Funzione in sviluppo")
+                }
+              >
                 <Text style={styles.settingText}>Notifiche</Text>
               </TouchableOpacity>
 
               {/* MODALE LOGOUT */}
-              <Modal animationType="fade" transparent={true} visible={logoutModalVisible} onRequestClose={() => setLogoutModalVisible(false)}>
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={logoutModalVisible}
+                onRequestClose={() => setLogoutModalVisible(false)}
+              >
                 <View style={styles.modalContainer}>
                   <View style={modalContentStyle}>
                     <Text style={modalTitleStyle}>Conferma Logout</Text>
-                    <Text style={modalTextStyle}>Vuoi davvero uscire dal tuo account?</Text>
+                    <Text style={modalTextStyle}>
+                      Vuoi davvero uscire dal tuo account?
+                    </Text>
                     <View style={styles.modalButtons}>
-                      <TouchableOpacity style={styles.confirmButton} onPress={logout}>
+                      <TouchableOpacity
+                        style={styles.confirmButton}
+                        onPress={logout}
+                      >
                         <Text style={styles.buttonText}>Sì, esci</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.cancelButton} onPress={() => setLogoutModalVisible(false)}>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => setLogoutModalVisible(false)}
+                      >
                         <Text style={styles.buttonText}>Annulla</Text>
                       </TouchableOpacity>
                     </View>
@@ -157,17 +258,34 @@ export default function SettingsScreen() {
                 </View>
               </Modal>
 
+
               {/* MODALE ELIMINA ACCOUNT */}
-              <Modal animationType="fade" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(false)}>
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={deleteModalVisible}
+                onRequestClose={() => setDeleteModalVisible(false)}
+              >
                 <View style={styles.modalContainer}>
                   <View style={modalContentStyle}>
                     <Text style={modalTitleStyle}>Elimina account</Text>
-                    <Text style={modalTextStyle}>Questa azione è irreversibile. Vuoi continuare?</Text>
+                    <Text style={modalTextStyle}>
+                      Questa azione è irreversibile. Vuoi continuare?
+                    </Text>
                     <View style={styles.modalButtons}>
-                      <TouchableOpacity style={[styles.confirmButton, { backgroundColor: 'red' }]} onPress={deleteAccount}>
+                      <TouchableOpacity
+                        style={[
+                          styles.confirmButton,
+                          { backgroundColor: "red" },
+                        ]}
+                        onPress={deleteAccount}
+                      >
                         <Text style={styles.buttonText}>Elimina</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.cancelButton} onPress={() => setDeleteModalVisible(false)}>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => setDeleteModalVisible(false)}
+                      >
                         <Text style={styles.buttonText}>Annulla</Text>
                       </TouchableOpacity>
                     </View>
@@ -176,48 +294,156 @@ export default function SettingsScreen() {
               </Modal>
 
               {/* MODALE LOGIN */}
-            <LoginModal
-              loginPopupVisible={loginPopupVisible}
-              setLoginPopupVisible={setLoginPopupVisible}
-              setIsLogged={setIsLogged}
-              loginUser={loginUser}
-              loadInfo={loadInfo}
-              setRegisterPopupVisible={setRegisterPopupVisible}
-            />
+              <LoginModal
+                loginPopupVisible={loginPopupVisible}
+                setLoginPopupVisible={setLoginPopupVisible}
+                setIsLogged={setIsLogged}
+                loginUser={loginUser}
+                loadInfo={loadInfo}
+                setRegisterPopupVisible={setRegisterPopupVisible}
+              />
+
+              {/* MODALE REGISTRAZIONE */}
+              <RegisterModal
+                registerPopupVisible={registerPopupVisible}
+                setRegisterPopupVisible={setRegisterPopupVisible}
+                loadInfo={loadInfo}
+                modalContentStyle={modalContentStyle}
+                modalTitleStyle={modalTitleStyle}
+                isDark={isDark}
+                setTermsModalVisible={setTermsModalVisible}
+                registerUser={registerUser}
+                setIsLogged={setIsLogged}
+                setLoginPopupVisible={setLoginPopupVisible}
+              />
+
+              {/* MODALE TERMINI E CONDIZIONI */}
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={termsModalVisible}
+                onRequestClose={() => setTermsModalVisible(false)}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={modalContentStyle}>
+                    <Text style={modalTitleStyle} allowFontScaling={false}>
+                      Termini e Condizioni
+                    </Text>
+                    <TermsAndConditions />
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => {
+                        setTermsModalVisible(false);
+                        setRegisterPopupVisible(true);
+                      }}
+                    >
+                      <Text
+                        style={styles.closeButtonText}
+                        allowFontScaling={false}
+                      >
+                        Chiudi
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
 
 
-            {/* MODALE REGISTRAZIONE */}
-            <RegisterModal
-              registerPopupVisible={registerPopupVisible}
-              setRegisterPopupVisible={setRegisterPopupVisible}
-              loadInfo={loadInfo}
-              modalContentStyle={modalContentStyle}
-              modalTitleStyle={modalTitleStyle}
-              isDark = {isDark}
-              setTermsModalVisible={setTermsModalVisible}
-              registerUser={registerUser}
-              setIsLogged={setIsLogged}
-              setLoginPopupVisible={setLoginPopupVisible}
-            />
+              {/* MODALE CAMBIO PASSWORD */}
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={passwordChangeModalVisible}
+                onRequestClose={() => setPasswordChangeModalVisible(false)}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={modalContentStyle}>
+                    <Text style={modalTitleStyle} allowFontScaling={false}>Cambia Password</Text>
+                    <Text style={{ color: authColor, marginBottom: 10, fontSize: 14, textAlign: 'center' }} allowFontScaling={false}>{authStatus}</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        placeholder="Vecchia Password"
+                        onChangeText={setOldPassword}
+                        secureTextEntry={!showOld}
+                        style={styles.inputWithIcon}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        textContentType="password"
+                        autoComplete="current-password"
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeButton}
+                        onPress={() => setShowOld(!showOld)}
+                      >
+                        <MaterialCommunityIcons
+                          name={showOld ? 'eye-off-outline' : 'eye-outline'}
+                          size={22}
+                          color="#666"
+                        />
+                      </TouchableOpacity>
+                    </View>
 
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        placeholder="Nuova Password"
+                        onChangeText={setNewPassword}
+                        secureTextEntry={!showNew}
+                        style={styles.inputWithIcon}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special"
+                        autoComplete="new-password"
+                        textContentType="newPassword"
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeButton}
+                        onPress={() => setShowNew(!showNew)}
+                      >
+                        <MaterialCommunityIcons
+                          name={showNew ? 'eye-off-outline' : 'eye-outline'}
+                          size={22}
+                          color="#666"
+                        />
+                      </TouchableOpacity>
+                    </View>
 
-            {/* MODALE TERMINI E CONDIZIONI */}
-                        <Modal
-                          animationType="fade"
-                          transparent={true}
-                          visible={termsModalVisible}
-                          onRequestClose={() => setTermsModalVisible(false)}
-                        >
-                          <View style={styles.modalContainer}>
-                            <View style={modalContentStyle}>
-                              <Text style={modalTitleStyle} allowFontScaling={false}>Termini e Condizioni</Text>
-                                  <TermsAndConditions />
-                              <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
-                                <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        </Modal>
+                    
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        placeholder="Conferma Nuova Password"
+                        onChangeText={setNewPasswordConfirm}
+                        secureTextEntry={!showConfirm}
+                        style={styles.inputWithIcon}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special"
+                        autoComplete="new-password"
+                        textContentType="newPassword"
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeButton}
+                        onPress={() => setShowConfirm(!showConfirm)}
+                      >
+                        <MaterialCommunityIcons
+                          name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
+                          size={22}
+                          color="#666"
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style ={styles.supportButton}>
+                      <TouchableOpacity style={styles.confirmButton} onPress={() => {changePassword(); }}>
+                        <Text style={styles.buttonText}>Conferma</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.closeButton} onPress={() => {setPasswordChangeModalVisible(false); setAuthStatus(''); setAuthColor('');}} >
+                        <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
 
             </View>
           </ScrollView>
@@ -332,4 +558,51 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
     marginBottom: -2
   },
+  input: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    color: '#000',
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+    overflow: 'hidden',
+  },
+  supportButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  passwordContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#F0F0F0',
+  borderRadius: 10,
+  paddingHorizontal: 15,
+  marginBottom: 20,
+},
+inputWrapper: {
+  width: '100%',
+  marginBottom: 20,
+},
+inputWithIcon: {
+  width: '100%',
+  height: 50,
+  backgroundColor: '#F0F0F0',
+  borderRadius: 10,
+  paddingHorizontal: 15,
+  paddingRight: 45, // spazio per l'icona
+  color: '#000',
+  fontSize: 16,
+  fontFamily: 'Poppins-Regular',
+},
+eyeButton: {
+  position: 'absolute',
+  right: 15,
+  top: 13,
+},
+
+
 });

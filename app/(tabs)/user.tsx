@@ -370,13 +370,13 @@ export default function AboutScreen() {
   };
 
   // Invio mail di supporto
-  const mail = () => {
-    MailComposer.composeAsync({
-      recipients: ['info@coderdojobrianza.it'],
-      subject: 'Richiesta di supporto',
-      body: 'Buongiorno, ho bisogno di aiuto',
-    });
-  };
+  // const mail = () => {
+  //   MailComposer.composeAsync({
+  //     recipients: ['info@coderdojobrianza.it'],
+  //     subject: 'Richiesta di supporto',
+  //     body: 'Buongiorno, ho bisogno di aiuto',
+  //   });
+  // };
 
   const navigation = useNavigation();
 
@@ -401,7 +401,7 @@ export default function AboutScreen() {
 
             {/* SCHEDA UTENTE */}
             <View style={styles.userTab}>
-              <TouchableOpacity onPress={() => {login()}}>
+              <TouchableOpacity onPress={() => { if(!isLogged) login()}}>
                 <Text style={styles.userName} allowFontScaling={false}>
                   {userName ? userName : 'Accedi/registrati'}
                 </Text>              
@@ -485,7 +485,7 @@ export default function AboutScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.siteButton} onPress={() => {
-                      mail();
+                      Linking.openURL('mailto:info@coderdojobrianza.it')
                       setTimeout(() => {
                         closeModal();
                       }, 300);

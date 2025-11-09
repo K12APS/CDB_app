@@ -4,7 +4,7 @@ export default {
   "expo": {
     "name": "CDBapp",
     "slug": "cdb-app",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "orientation": "portrait",
     "icon": "./assets/images/IconaSplash.png",
     "scheme": "myapp",
