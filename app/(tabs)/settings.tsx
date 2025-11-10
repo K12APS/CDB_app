@@ -62,6 +62,7 @@ export default function SettingsScreen() {
   }
 
   const changePassword = async () => {
+    console.log('passwordChange')
     //Alert.alert("Prossimamente", "Funzione in sviluppo")
     const token = await AsyncStorage.getItem('token');
     if(!token) {
@@ -78,12 +79,12 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (!verifyPassword(newPassword)) {
-      //Alert.alert('Errore', 'La nuova password non soddisfa i requisiti.');
-      setAuthStatus('La nuova password non soddisfa i requisiti.');
-      setAuthColor('red');
-      return;
-    }
+    //!! if (!verifyPassword(newPassword)) {
+    //   //Alert.alert('Errore', 'La nuova password non soddisfa i requisiti.');
+    //   setAuthStatus('La nuova password non soddisfa i requisiti.');
+    //   setAuthColor('red');
+    //   return;
+    // }
 
     try {
       const response = await axios.post('https://api.coderdojobrianza.it:3000/requestPasswordChange', 
@@ -91,14 +92,17 @@ export default function SettingsScreen() {
         {headers: { Authorization: `${token}` }
       });
 
+      console.log(response)
+
       if(response.status === 200) {
+
         setOldPassword('');
         setNewPassword('');
         setNewPasswordConfirm('');
         //Alert.alert('Successo', 'Password cambiata con successo.');
         setAuthStatus('Password cambiata con successo.');
         setAuthColor('green');
-        await AsyncStorage.setItem('token', response.data.token);
+        await AsyncStorage.setItem('token', response.headers['x-renewed-token']);
       } else {
         setAuthStatus('Impossibile cambiare la password.');
         setAuthColor('red');
@@ -107,6 +111,7 @@ export default function SettingsScreen() {
       //Alert.alert('Errore', 'Si è verificato un errore durante il cambio della password.');
       setAuthStatus('Si è verificato un errore durante il cambio della password.');
       setAuthColor('red');
+      console.log(error)
     }
   }
 
@@ -127,8 +132,8 @@ export default function SettingsScreen() {
           return false;
         }
 
-        if (response.headers['x-new-token']) {
-          await AsyncStorage.setItem('token', response.headers['x-new-token']);
+        if (response.headers['x-renewed-token']) {
+          await AsyncStorage.setItem('token', response.headers['x-renewed-token']);
         }
         setUserName(response.data.user.nome);
         await AsyncStorage.setItem('userName', response.data.user.nome);
