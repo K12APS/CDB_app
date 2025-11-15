@@ -4,27 +4,35 @@ import { ScreenContainer, Screen } from 'react-native-screens';
 import { enableScreens } from 'react-native-screens'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import HeaderBar from "@/components/HeaderBar";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Portal } from '@gorhom/portal';
+import {
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 
 import { useContext } from 'react';
 import { UserContext } from '../../context/userContext';
-import { isLoaded } from 'expo-font';
-
-import LoginModal from '../../components/loginModal';
-import RegisterModal from '../../components/RegisterModal';
 
 import { loginUser, registerUser } from '@/utils/authUtils';
 
-import TermsAndConditions from '@/components/Terms';
+import LoginButtonSheet from '../../components/LoginButtonSheet';
+import RegisterBottomSheet from '../../components/RegisterBottomSheet';
+import TermsBottomSheet from '../../components/TermsBottomSheet';
 
 
 
 enableScreens();
 
 export default function SettingsScreen() {
+  const loginBottomSheetRef = useRef<any>(null);
+  const registerBottomSheetRef = useRef<any>(null);
+  const termsBottomSheetRef = useRef<any>(null);
+  const passwordBottomSheetRef = useRef<any>(null);
+
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const containerStyle = isDark ? styles.containerDark : styles.containerLight;
@@ -37,11 +45,6 @@ export default function SettingsScreen() {
   const { setUserName } = useContext(UserContext);
   const { setIsLogged, isLogged } = useContext(UserContext);
 
-  const [loginPopupVisible, setLoginPopupVisible] = useState(false);
-  const [registerPopupVisible, setRegisterPopupVisible] = useState(false);
-  const [termsModalVisible, setTermsModalVisible] = useState(false);
-  const [passwordChangeModalVisible, setPasswordChangeModalVisible] = useState(false);
-
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
@@ -52,9 +55,6 @@ export default function SettingsScreen() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const login = () => {
-    setLoginPopupVisible(true);
-  }
 
   const verifyPassword = (password: string) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,25}$/; //minimo 10 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale massimo 25 caratteri
@@ -62,29 +62,26 @@ export default function SettingsScreen() {
   }
 
   const changePassword = async () => {
-    console.log('passwordChange')
-    //Alert.alert("Prossimamente", "Funzione in sviluppo")
+  
     const token = await AsyncStorage.getItem('token');
     if(!token) {
-      //Alert.alert('Errore', 'Devi essere loggato per cambiare la password.');
       setAuthStatus('Devi essere loggato per cambiare la password.');
       setAuthColor('red');
       return;
     }
 
     if (newPassword !== newPasswordConfirm) {
-      //Alert.alert('Errore', 'Le nuove password non corrispondono.');
       setAuthStatus('Le nuove password non corrispondono.');
       setAuthColor('red');
       return;
     }
 
-    //!! if (!verifyPassword(newPassword)) {
-    //   //Alert.alert('Errore', 'La nuova password non soddisfa i requisiti.');
-    //   setAuthStatus('La nuova password non soddisfa i requisiti.');
-    //   setAuthColor('red');
-    //   return;
-    // }
+    if (!verifyPassword(newPassword)) {
+      //Alert.alert('Errore', 'La nuova password non soddisfa i requisiti.');
+      setAuthStatus('La nuova password non soddisfa i requisiti.');
+      setAuthColor('red');
+      return;
+    }
 
     try {
       const response = await axios.post('https://api.coderdojobrianza.it:3000/requestPasswordChange', 
@@ -92,23 +89,22 @@ export default function SettingsScreen() {
         {headers: { Authorization: `${token}` }
       });
 
-      console.log(response)
-
       if(response.status === 200) {
 
         setOldPassword('');
         setNewPassword('');
         setNewPasswordConfirm('');
-        //Alert.alert('Successo', 'Password cambiata con successo.');
         setAuthStatus('Password cambiata con successo.');
         setAuthColor('green');
         await AsyncStorage.setItem('token', response.headers['x-renewed-token']);
+        setTimeout(() => {
+          passwordBottomSheetRef.current?.dismiss();
+        }, 900);
       } else {
         setAuthStatus('Impossibile cambiare la password.');
         setAuthColor('red');
       }
     } catch (error) {
-      //Alert.alert('Errore', 'Si è verificato un errore durante il cambio della password.');
       setAuthStatus('Si è verificato un errore durante il cambio della password.');
       setAuthColor('red');
       console.log(error)
@@ -171,6 +167,7 @@ export default function SettingsScreen() {
   };
 
   return (
+    <>
     <SafeAreaView
       style={{ flex: 1, backgroundColor: isDark ? "#1E1E1E" : "#ffffff" }}
       edges={["top", "left", "right"]}
@@ -188,7 +185,7 @@ export default function SettingsScreen() {
                 <TouchableOpacity
                   style={styles.settingItem}
                   onPress={() => {
-                    login();
+                    loginBottomSheetRef.current?.open()
                   }}
                 >
                   <Text style={styles.settingText}>Accedi o Registrati</Text>
@@ -215,7 +212,7 @@ export default function SettingsScreen() {
                     style={styles.settingItem}
                     onPress={() =>
                       //Alert.alert("Prossimamente", "Funzione in sviluppo")
-                      setPasswordChangeModalVisible(true)
+                      passwordBottomSheetRef.current?.present()
                     }
                   >
                     <Text style={styles.settingText}>Cambia password</Text>
@@ -297,164 +294,260 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </Modal>
-
-              {/* MODALE LOGIN */}
-              <LoginModal
-                loginPopupVisible={loginPopupVisible}
-                setLoginPopupVisible={setLoginPopupVisible}
-                setIsLogged={setIsLogged}
-                loginUser={loginUser}
-                loadInfo={loadInfo}
-                setRegisterPopupVisible={setRegisterPopupVisible}
-              />
-
-              {/* MODALE REGISTRAZIONE */}
-              <RegisterModal
-                registerPopupVisible={registerPopupVisible}
-                setRegisterPopupVisible={setRegisterPopupVisible}
-                loadInfo={loadInfo}
-                modalContentStyle={modalContentStyle}
-                modalTitleStyle={modalTitleStyle}
-                isDark={isDark}
-                setTermsModalVisible={setTermsModalVisible}
-                registerUser={registerUser}
-                setIsLogged={setIsLogged}
-                setLoginPopupVisible={setLoginPopupVisible}
-              />
-
-              {/* MODALE TERMINI E CONDIZIONI */}
-              <Modal
-                animationType="fade"
-                transparent={true}
-                visible={termsModalVisible}
-                onRequestClose={() => setTermsModalVisible(false)}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={modalContentStyle}>
-                    <Text style={modalTitleStyle} allowFontScaling={false}>
-                      Termini e Condizioni
-                    </Text>
-                    <TermsAndConditions />
-                    <TouchableOpacity
-                      style={styles.closeButton}
-                      onPress={() => {
-                        setTermsModalVisible(false);
-                        setRegisterPopupVisible(true);
-                      }}
-                    >
-                      <Text
-                        style={styles.closeButtonText}
-                        allowFontScaling={false}
-                      >
-                        Chiudi
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-
-
-              {/* MODALE CAMBIO PASSWORD */}
-              <Modal
-                animationType="fade"
-                transparent={true}
-                visible={passwordChangeModalVisible}
-                onRequestClose={() => setPasswordChangeModalVisible(false)}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={modalContentStyle}>
-                    <Text style={modalTitleStyle} allowFontScaling={false}>Cambia Password</Text>
-                    <Text style={{ color: authColor, marginBottom: 10, fontSize: 14, textAlign: 'center' }} allowFontScaling={false}>{authStatus}</Text>
-                    <View style={styles.inputWrapper}>
-                      <TextInput
-                        placeholder="Vecchia Password"
-                        onChangeText={setOldPassword}
-                        secureTextEntry={!showOld}
-                        style={styles.inputWithIcon}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        textContentType="password"
-                        autoComplete="current-password"
-                      />
-                      <TouchableOpacity
-                        style={styles.eyeButton}
-                        onPress={() => setShowOld(!showOld)}
-                      >
-                        <MaterialCommunityIcons
-                          name={showOld ? 'eye-off-outline' : 'eye-outline'}
-                          size={22}
-                          color="#666"
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.inputWrapper}>
-                      <TextInput
-                        placeholder="Nuova Password"
-                        onChangeText={setNewPassword}
-                        secureTextEntry={!showNew}
-                        style={styles.inputWithIcon}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special"
-                        autoComplete="new-password"
-                        textContentType="newPassword"
-                      />
-                      <TouchableOpacity
-                        style={styles.eyeButton}
-                        onPress={() => setShowNew(!showNew)}
-                      >
-                        <MaterialCommunityIcons
-                          name={showNew ? 'eye-off-outline' : 'eye-outline'}
-                          size={22}
-                          color="#666"
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    
-                    <View style={styles.inputWrapper}>
-                      <TextInput
-                        placeholder="Conferma Nuova Password"
-                        onChangeText={setNewPasswordConfirm}
-                        secureTextEntry={!showConfirm}
-                        style={styles.inputWithIcon}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        passwordRules="minlength: 10; required: upper; required: lower; required: digit; maxlength: 25; required: special"
-                        autoComplete="new-password"
-                        textContentType="newPassword"
-                      />
-                      <TouchableOpacity
-                        style={styles.eyeButton}
-                        onPress={() => setShowConfirm(!showConfirm)}
-                      >
-                        <MaterialCommunityIcons
-                          name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                          size={22}
-                          color="#666"
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style ={styles.supportButton}>
-                      <TouchableOpacity style={styles.confirmButton} onPress={() => {changePassword(); }}>
-                        <Text style={styles.buttonText}>Conferma</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity style={styles.closeButton} onPress={() => {setPasswordChangeModalVisible(false); setAuthStatus(''); setAuthColor('');}} >
-                        <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </Modal>
-
             </View>
           </ScrollView>
         </Screen>
       </ScreenContainer>
     </SafeAreaView>
+
+    <Portal hostName="bottom-sheet-portal">
+         {/* LOGIN bottom sheet (NUOVO) */}
+        <LoginButtonSheet
+          ref={loginBottomSheetRef}
+          setIsLogged={setIsLogged}
+          loginUser={loginUser}
+          loadInfo={loadInfo}
+          registerBottomSheetRef={registerBottomSheetRef}
+        />
+
+        <RegisterBottomSheet
+        ref={registerBottomSheetRef}
+        setIsLogged={setIsLogged}
+        registerUser={registerUser}
+        loadInfo={loadInfo}
+        setLoginPopupVisible={() => loginBottomSheetRef.current?.open()}
+        termsBottomSheetRef={termsBottomSheetRef}
+        isDark={isDark}
+      />
+
+      <TermsBottomSheet
+        ref={termsBottomSheetRef}
+        onClose={() => {}}
+        openRegister={() => registerBottomSheetRef.current?.open()}
+      />
+
+      {/* BOTTOM SHEET CAMBIO PASSWORD */}
+      <BottomSheetModal
+        ref={passwordBottomSheetRef}
+        snapPoints={["65%"]}
+        enablePanDownToClose={true}
+        backgroundStyle={{
+          backgroundColor: isDark ? "#1F1F1F" : "#F7F7F7",
+          borderTopLeftRadius: 30,
+          borderTopRightRadius: 30,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: isDark ? "#777" : "#AAA",
+          width: 45,
+        }}
+        onDismiss={() => {
+          setAuthStatus("");
+          setAuthColor("green");
+          setOldPassword("");
+          setNewPassword("");
+          setNewPasswordConfirm("");
+        }}
+      >
+        <BottomSheetView
+          style={{
+            flex: 1,
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: 40,
+            backgroundColor: isDark ? "#1F1F1F" : "#F7F7F7",
+          }}
+        >
+          {/* TITRE */}
+          <Text
+            style={{
+              fontSize: 24,
+              fontFamily: "Poppins-Bold",
+              textAlign: "center",
+              marginBottom: 15,
+              color: isDark ? "#fff" : "#000",
+            }}
+          >
+            Cambia Password
+          </Text>
+
+          {/* STATUS */}
+          {authStatus ? (
+            <Text
+              style={{
+                color: authColor,
+                textAlign: "center",
+                marginBottom: 10,
+              }}
+            >
+              {authStatus}
+            </Text>
+          ) : null}
+
+          {/* OLD PASSWORD */}
+          <View
+            style={{
+              width: "100%",
+              backgroundColor: isDark ? "#3A3A3A" : "#EDEDED",
+              borderRadius: 14,
+              marginBottom: 15,
+              paddingHorizontal: 14,
+              paddingVertical: 4,
+              position: "relative",
+            }}
+          >
+            <TextInput
+              placeholder="Vecchia Password"
+              placeholderTextColor={isDark ? "#AAA" : "#777"}
+              secureTextEntry={!showOld}
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              style={{
+                height: 45,
+                fontSize: 16,
+                color: isDark ? "#fff" : "#000",
+                paddingRight: 40,
+                fontFamily: "Poppins-Regular",
+              }}
+            />
+            <TouchableOpacity
+              style={{ position: "absolute", right: 12, top: 12 }}
+              onPress={() => setShowOld(!showOld)}
+            >
+              <MaterialCommunityIcons
+                name={showOld ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#777"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* NEW PASSWORD */}
+          <View
+            style={{
+              width: "100%",
+              backgroundColor: isDark ? "#3A3A3A" : "#EDEDED",
+              borderRadius: 14,
+              marginBottom: 15,
+              paddingHorizontal: 14,
+              paddingVertical: 4,
+              position: "relative",
+            }}
+          >
+            <TextInput
+              placeholder="Nuova Password"
+              placeholderTextColor={isDark ? "#AAA" : "#777"}
+              secureTextEntry={!showNew}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              style={{
+                height: 45,
+                fontSize: 16,
+                color: isDark ? "#fff" : "#000",
+                paddingRight: 40,
+                fontFamily: "Poppins-Regular",
+              }}
+            />
+            <TouchableOpacity
+              style={{ position: "absolute", right: 12, top: 12 }}
+              onPress={() => setShowNew(!showNew)}
+            >
+              <MaterialCommunityIcons
+                name={showNew ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#777"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* CONFIRM PASSWORD */}
+          <View
+            style={{
+              width: "100%",
+              backgroundColor: isDark ? "#3A3A3A" : "#EDEDED",
+              borderRadius: 14,
+              marginBottom: 20,
+              paddingHorizontal: 14,
+              paddingVertical: 4,
+              position: "relative",
+            }}
+          >
+            <TextInput
+              placeholder="Conferma Nuova Password"
+              placeholderTextColor={isDark ? "#AAA" : "#777"}
+              secureTextEntry={!showConfirm}
+              value={newPasswordConfirm}
+              onChangeText={setNewPasswordConfirm}
+              style={{
+                height: 45,
+                fontSize: 16,
+                color: isDark ? "#fff" : "#000",
+                paddingRight: 40,
+                fontFamily: "Poppins-Regular",
+              }}
+            />
+            <TouchableOpacity
+              style={{ position: "absolute", right: 12, top: 12 }}
+              onPress={() => setShowConfirm(!showConfirm)}
+            >
+              <MaterialCommunityIcons
+                name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#777"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* BUTTONS */}
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: "#01722B",
+                paddingVertical: 12,
+                borderRadius: 14,
+                alignItems: "center",
+              }}
+              onPress={changePassword}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 15,
+                  fontFamily: "Poppins-SemiBold",
+                }}
+              >
+                Conferma
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: "#FFBE00",
+                paddingVertical: 12,
+                borderRadius: 14,
+                alignItems: "center",
+              }}
+              onPress={() => passwordBottomSheetRef.current?.dismiss()}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 15,
+                  fontFamily: "Poppins-Bold",
+                }}
+              >
+                Chiudi
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </BottomSheetView>
+      </BottomSheetModal>
+
+
+
+      </Portal>
+    </>
   );
 }
 

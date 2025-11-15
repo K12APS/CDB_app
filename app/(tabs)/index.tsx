@@ -196,7 +196,6 @@ export default function Index() {
     const url = response.notification.request.content.data.url;
 
     if (url) {
-      console.log('Apro link:', url);
       Linking.openURL(url); // apre il browser di sistema
     }
   });

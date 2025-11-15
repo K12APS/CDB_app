@@ -3,12 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { ScreenContainer, Screen } from 'react-native-screens'; 
 import { enableScreens } from 'react-native-screens'; 
 import { useNavigation } from 'expo-router';
-import React, { useState, useEffect, useRef, useMemo, useCallback, use } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import TermsBottomSheet from '../../components/TermsBottomSheet';
+
 
 
 import { useContext } from 'react';
@@ -16,24 +18,18 @@ import { UserContext } from '../../context/userContext';
 
 import { loginUser, registerUser } from '@/utils/authUtils';
 
-import LoginModal from '../../components/loginModal';
-import RegisterModal from '../../components/RegisterModal';
+import LoginButtonSheet from '../../components/LoginButtonSheet';
+import RegisterBottomSheet from '../../components/RegisterBottomSheet';
 
-import TermsAndConditions from '@/components/Terms';
-
-
-// import {
-//   BottomSheetModal,
-//   BottomSheetView,
-//   BottomSheetModalProvider,
-// } from '@gorhom/bottom-sheet';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// import { Portal } from '@gorhom/portal';
+import {
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
+import { Portal } from '@gorhom/portal';
 
 
 import HeaderBar from "@/components/HeaderBar";
 import axios from 'axios';
-// import { SlideOutDown } from 'react-native-reanimated';
 
 
 enableScreens();
@@ -41,7 +37,11 @@ enableScreens();
 
 
 export default function AboutScreen() {
-//! da spostare in un file separato che verifica prima di tutto se l'utente è loggato 
+  const loginBottomSheetRef = useRef(null);
+  const registerBottomSheetRef = useRef(null);
+  const termsBottomSheetRef = useRef(null);
+
+  //! da spostare in un file separato che verifica prima di tutto se l'utente è loggato 
 
 
   const loadInfo = async () => {
@@ -92,11 +92,6 @@ export default function AboutScreen() {
   const { userName, reloadUser, setUserName } = useContext(UserContext);
   const {isLogged, setIsLogged} = useContext(UserContext);
   const [tempName, setTempName] = useState('');
-  const [socialPopUpVisible, setSocialPopUpVisible] = useState(false);
-  const [loginPopupVisible, setLoginPopupVisible] = useState(false);
-  const [registerPopupVisible, setRegisterPopupVisible] = useState(false);
-  const [termsModalVisible, setTermsModalVisible] = useState(false);
-  // const [termsPopupVisible, setTermsPopupVisible] = useState(false);
 
   // Funzioni per aprire/chiudere i modali
   const openModal = () => {
@@ -120,40 +115,17 @@ export default function AboutScreen() {
      reloadUser();
   }, []);
 
-  // const loadUserName = async () => {
-  //   try {
-  //     const savedName = await AsyncStorage.getItem('userName');
-  //     if (savedName !== null) {
-  //       setUserName(savedName);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error loading name:', error);
-  //   }
-  // };
 
-  // Gestione modale nome
-  const insertName = () => {
-    setTempName(userName); // imposta il nome temporaneo
-    setNameModalVisible(true);
-  };
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  // Mostra il modale login
-  const login = () => {
-    setLoginPopupVisible(true);
-  }
-
-// // ref
-//   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-//   // callbacks
-//   const handlePresentModalPress = useCallback(() => {
-//     bottomSheetModalRef.current?.present();
-//   }, []);
-//   const handleSheetChanges = useCallback((index: number) => {
-//     console.log('handleSheetChanges', index);
-//   }, []);
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const handleSheetChanges = useCallback((index: number) => {
+  }, []);
 
   // Funzione login
+
   // const loginUser = () => {
 
   //   setEmail(email.trim().toLowerCase());
@@ -319,6 +291,7 @@ export default function AboutScreen() {
   //   });
   // }
 
+  
   // Chiede una recensione sull'App (solo iOS)
   const askReview = async () => {
   try {
@@ -382,8 +355,7 @@ export default function AboutScreen() {
 
   // RENDER DELLA PAGINA
   return (
-    // <GestureHandlerRootView>
-    //   <BottomSheetModalProvider>
+    <>
     <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
       
     <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
@@ -401,7 +373,7 @@ export default function AboutScreen() {
 
             {/* SCHEDA UTENTE */}
             <View style={styles.userTab}>
-              <TouchableOpacity onPress={() => { if(!isLogged) login()}}>
+              <TouchableOpacity onPress={() => {if (!isLogged) loginBottomSheetRef.current?.open()}}>
                 <Text style={styles.userName} allowFontScaling={false}>
                   {userName ? userName : 'Accedi/registrati'}
                 </Text>              
@@ -501,103 +473,52 @@ export default function AboutScreen() {
               </View>
             </Modal>
 
-            {/* MODALE LOGIN */}
-            <LoginModal
-              loginPopupVisible={loginPopupVisible}
-              setLoginPopupVisible={setLoginPopupVisible}
-              setIsLogged={setIsLogged}
-              loginUser={loginUser}
-              loadInfo={loadInfo}
-              setRegisterPopupVisible={setRegisterPopupVisible}
-            />
-
-
-            {/* MODALE REGISTRAZIONE */}
-            <RegisterModal
-              registerPopupVisible={registerPopupVisible}
-              setRegisterPopupVisible={setRegisterPopupVisible}
-              loadInfo={loadInfo}
-              modalContentStyle={modalContentStyle}
-              modalTitleStyle={modalTitleStyle}
-              isDark = {isDark}
-              setTermsModalVisible={setTermsModalVisible}
-              registerUser={registerUser}
-              setIsLogged={setIsLogged}
-              setLoginPopupVisible={setLoginPopupVisible}
-            />
-
-            {/* MODALE NOME UTENTE */}
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={nameModalVisible}
-              onRequestClose={() => setNameModalVisible(false)}
-            >
-              <View style={styles.modalContainer}>
-                <View style={modalContentStyle}>
-                  <Text style={modalTitleStyle} allowFontScaling={false}>Il tuo nome</Text>
-                  <Text style={modalTextStyle} allowFontScaling={false}>Inserisci il tuo nome e cognome:</Text>
-                  
-                  <TextInput
-                    style={styles.nameInput}
-                    value={tempName}
-                    onChangeText={setTempName}
-                    placeholder="Nome Cognome"
-                    placeholderTextColor="#999"
-                  />
-                  
-                  <View style={styles.supportButton}>
-                    <TouchableOpacity style={styles.saveButton} onPress={saveName}>
-                      <Text style={styles.buttonText} allowFontScaling={false}>Salva</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity style={styles.closeButton} onPress={() => setNameModalVisible(false)}>
-                      <Text style={styles.closeButtonText} allowFontScaling={false}>Annulla</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </Modal>
-
-            {/* MODALE TERMINI E CONDIZIONI */}
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={termsModalVisible}
-              onRequestClose={() => setTermsModalVisible(false)}
-            >
-              <View style={styles.modalContainer}>
-                <View style={modalContentStyle}>
-                  <Text style={modalTitleStyle} allowFontScaling={false}>Termini e Condizioni</Text>
-                    <TermsAndConditions />
-                    <TouchableOpacity style={styles.closeButton} onPress={() => { setTermsModalVisible(false); setRegisterPopupVisible(true); }}>
-                      <Text style={styles.closeButtonText} allowFontScaling={false}>Chiudi</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-
-            
-
           </View>
         </ScrollView>
-        {/* BOTTOM SHEET MODAL (menu dal basso)
-
-           <BottomSheetModal
-                       ref={bottomSheetModalRef}
-                       onChange={handleSheetChanges}
-                       stackBehavior='replace'
-                     >
-                       <BottomSheetView style={styles.contentContainer}>
-                         <Text>Awesome 🎉</Text>
-                       </BottomSheetView>
-                   </BottomSheetModal> */}
-
       </Screen>
     </ScreenContainer>
     </SafeAreaView>
-    // {/* </BottomSheetModalProvider>
-    // </GestureHandlerRootView> */}
+
+{/* BOTTOM SHEET MONTATO NEL PORTAL */}
+      <Portal hostName="bottom-sheet-portal">
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          onChange={handleSheetChanges}
+          stackBehavior="replace"
+        >
+          <BottomSheetView style={styles.contentContainer}>
+            <Text>Awesome 🎉</Text>
+          </BottomSheetView>
+        </BottomSheetModal>
+
+         {/* LOGIN bottom sheet (NUOVO) */}
+        <LoginButtonSheet
+          ref={loginBottomSheetRef}
+          setIsLogged={setIsLogged}
+          loginUser={loginUser}
+          loadInfo={loadInfo}
+          registerBottomSheetRef={registerBottomSheetRef}
+        />
+
+        <RegisterBottomSheet
+        ref={registerBottomSheetRef}
+        setIsLogged={setIsLogged}
+        registerUser={registerUser}
+        loadInfo={loadInfo}
+        setLoginPopupVisible={() => loginBottomSheetRef.current?.open()}
+        termsBottomSheetRef={termsBottomSheetRef}
+        isDark={isDark}
+      />
+
+      <TermsBottomSheet
+        ref={termsBottomSheetRef}
+        onClose={() => {}}
+        openRegister={() => registerBottomSheetRef.current?.open()}
+      />
+
+
+      </Portal>
+    </>
   );
 }
 const styles = StyleSheet.create({

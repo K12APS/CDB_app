@@ -14,6 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { PortalHost } from '@gorhom/portal';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
 
@@ -261,7 +264,8 @@ export default function TabLayout() {
     //   />
     //   </Tabs> 
     //  </View> 
-
+     <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
      <NativeTabs >
         <NativeTabs.Trigger name="index" >
           <Label>Home</Label>
@@ -303,6 +307,10 @@ export default function TabLayout() {
           })}
         </NativeTabs.Trigger>
      </NativeTabs>
+            {/* Host globale per i portal del bottom sheet */}
+        <PortalHost name="bottom-sheet-portal" />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
 
   );
 }
