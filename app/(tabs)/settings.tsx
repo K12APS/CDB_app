@@ -153,18 +153,55 @@ export default function SettingsScreen() {
   };
 
   const deleteAccount = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete('https://api.coderdojobrianza.it:3000/deleteAccount', {
-        headers: { Authorization: `${token}` }
-      });
-      await AsyncStorage.clear();
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    const res = await axios.delete(
+      'https://api.coderdojobrianza.it:3000/deleteAccount',
+      {
+        headers: { Authorization: token }
+      }
+    );
+
+    if (res.status === 200) {
+      //await AsyncStorage.clear();
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userName');
+      setUserName('Accedi/registrati');
+      setIsLogged(false);
       setDeleteModalVisible(false);
       Alert.alert('Account eliminato', 'Il tuo account è stato eliminato con successo.');
-    } catch (error) {
-      Alert.alert('Errore', 'Impossibile eliminare l’account.');
     }
-  };
+
+  } catch (error) {
+    const axiosError = error as any;
+
+    if (axiosError.response) {
+
+      if (axiosError.response.status === 500) {
+        Alert.alert('Errore', 'Errore del server. Riprova più tardi.');
+        return;
+      }
+
+      if (axiosError.response.status === 401) {
+        Alert.alert('Sessione scaduta', 'Effettua nuovamente il login.');
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('userName');
+        setUserName('Accedi/registrati');
+        setIsLogged(false);
+          return;
+        }
+
+      // altri errori del server
+      Alert.alert('Errore', axiosError.response.data?.message || 'Errore sconosciuto.');
+      return;
+
+    } else {
+      //errori di rete / timeout
+      Alert.alert('Errore', 'Connessione al server non riuscita.');
+    }
+  }
+};
 
   return (
     <>
