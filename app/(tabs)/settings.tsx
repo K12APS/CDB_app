@@ -22,6 +22,7 @@ import { loginUser, registerUser } from '@/utils/authUtils';
 import LoginButtonSheet from '../../components/LoginButtonSheet';
 import RegisterBottomSheet from '../../components/RegisterBottomSheet';
 import TermsBottomSheet from '../../components/TermsBottomSheet';
+import PasswordChangeBottomSheet from '../../components/PasswordChangeBottomSheet';
 
 
 
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const registerBottomSheetRef = useRef<any>(null);
   const termsBottomSheetRef = useRef<any>(null);
   const passwordBottomSheetRef = useRef<any>(null);
+  const pswChangeBottomSheetRef = useRef<any>(null);
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -345,6 +347,7 @@ export default function SettingsScreen() {
           loginUser={loginUser}
           loadInfo={loadInfo}
           registerBottomSheetRef={registerBottomSheetRef}
+          pswChangeBottomSheetRef={pswChangeBottomSheetRef}
         />
 
         <RegisterBottomSheet
@@ -361,6 +364,12 @@ export default function SettingsScreen() {
         ref={termsBottomSheetRef}
         onClose={() => {}}
         openRegister={() => registerBottomSheetRef.current?.open()}
+      />
+
+      <PasswordChangeBottomSheet
+        ref={pswChangeBottomSheetRef}
+        onClose={() => {}}
+        openLogin={() => loginBottomSheetRef.current?.open()}
       />
 
       {/* BOTTOM SHEET CAMBIO PASSWORD */}

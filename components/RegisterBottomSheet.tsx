@@ -88,7 +88,7 @@ const RegisterBottomSheet = forwardRef(
               </Text>
             )}
 
-            {/* INPUTS */}
+            {/* INPUT */}
             <View style={[styles.inputContainer, { backgroundColor: subtle }]}>
               <TextInput
                 placeholder="Nome"

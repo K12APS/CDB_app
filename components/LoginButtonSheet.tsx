@@ -7,6 +7,7 @@ const LoginBottomSheet = forwardRef(({
   loginUser,
   loadInfo,
   registerBottomSheetRef,
+  pswChangeBottomSheetRef
 }, ref) => {
 
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -89,6 +90,18 @@ const LoginBottomSheet = forwardRef(({
             onChangeText={setPassword}
           />
         </View>
+
+
+        <TouchableOpacity
+          style={styles.passwordButton}
+          onPress={() => {
+            sheetRef.current?.dismiss();
+            setTimeout(() => pswChangeBottomSheetRef.current?.open(), 200);
+          }}
+        >
+          <Text style={styles.passwordText}>Password dimenticata</Text>
+        </TouchableOpacity>
+
 
         {/* BOTTONI */}
         <View style={styles.buttonRow}>
@@ -213,6 +226,17 @@ const styles = StyleSheet.create({
   registerText: {
     color: "#79C7DA",
     fontSize: 15,
+    fontFamily: "Poppins-SemiBold",
+  },
+
+  passwordButton: {
+    textAlign: "left",
+    marginBottom: 5,
+  },
+
+  passwordText: {
+    color: "#79C7DA",
+    fontSize: 13,
     fontFamily: "Poppins-SemiBold",
   },
 });

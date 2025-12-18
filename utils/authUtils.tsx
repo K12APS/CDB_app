@@ -2,6 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
+
 const verifyEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
     return regex.test(email);
@@ -178,11 +179,13 @@ const verifyEmail = (email: string) => {
       setAuthColor('green');
 
       // nascondi il messaggio dopo 2 secondi e chiudi il popup
-      setTimeout(() => {
-        setRegisterPopupVisible(false);
-        setAuthStatus(null);
+      // setTimeout(() => {
+      //   setRegisterPopupVisible(false);
+      //   setAuthStatus(null);
         
-      }, 2000);
+      // }, 2000);
+      setRegisterPopupVisible(false);
+      setTimeout(() => otpBottomSheetRef.current?.open(), 200);
     })
     .catch(error => {
       if (error.response && error.response.status === 409) {
