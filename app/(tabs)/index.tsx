@@ -505,6 +505,7 @@ export default function Index() {
                         <Text
                           style={styles.igTitleText}
                           allowFontScaling={false}
+                          numberOfLines={2} ellipsizeMode="tail"
                         >
                           {blogItem.title}
                         </Text>

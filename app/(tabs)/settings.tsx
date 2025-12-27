@@ -46,6 +46,8 @@ export default function SettingsScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const { setUserName } = useContext(UserContext);
   const { setIsLogged, isLogged } = useContext(UserContext);
+  const { setEmailVerified, emailVerified } = useContext(UserContext);
+  console.log('Email verified status in SettingsScreen:', emailVerified);
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -221,6 +223,16 @@ export default function SettingsScreen() {
             <HeaderBar title="Impostazioni" />
             <View style={containerStyle}>
               {!isLogged ? (
+                <>
+                {!emailVerified && (
+                  <View style={styles.warningBox}>
+                    <Text style={styles.warningText}>
+                      Verifica la tua mail e fai l’accesso
+                    </Text>
+                  </View>
+                  
+                )}
+
                 <TouchableOpacity
                   style={styles.settingItem}
                   onPress={() => {
@@ -229,6 +241,7 @@ export default function SettingsScreen() {
                 >
                   <Text style={styles.settingText}>Accedi o Registrati</Text>
                 </TouchableOpacity>
+                </>
               ) : (
                 <>
                   <TouchableOpacity
@@ -348,6 +361,7 @@ export default function SettingsScreen() {
           loadInfo={loadInfo}
           registerBottomSheetRef={registerBottomSheetRef}
           pswChangeBottomSheetRef={pswChangeBottomSheetRef}
+          setEmailVerified={setEmailVerified}
         />
 
         <RegisterBottomSheet
@@ -358,6 +372,7 @@ export default function SettingsScreen() {
         setLoginPopupVisible={() => loginBottomSheetRef.current?.open()}
         termsBottomSheetRef={termsBottomSheetRef}
         isDark={isDark}
+        setEmailVerified={setEmailVerified}
       />
 
       <TermsBottomSheet
@@ -726,27 +741,42 @@ const styles = StyleSheet.create({
   borderRadius: 10,
   paddingHorizontal: 15,
   marginBottom: 20,
-},
-inputWrapper: {
-  width: '100%',
-  marginBottom: 20,
-},
-inputWithIcon: {
-  width: '100%',
-  height: 50,
-  backgroundColor: '#F0F0F0',
-  borderRadius: 10,
-  paddingHorizontal: 15,
-  paddingRight: 45, // spazio per l'icona
-  color: '#000',
-  fontSize: 16,
-  fontFamily: 'Poppins-Regular',
-},
-eyeButton: {
-  position: 'absolute',
-  right: 15,
-  top: 13,
-},
+  },
+  inputWrapper: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  inputWithIcon: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingRight: 45, // spazio per l'icona
+    color: '#000',
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 13,
+  },
+
+  warningBox: {
+    backgroundColor: 'rgba(255, 193, 7, 0.2)', 
+    borderColor: '#FFC107', 
+    borderWidth: 2,
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  warningText: {
+    color: '#FFC107',
+    fontSize: 18,
+    fontFamily: 'Poppins-Regular',
+  },
+
 
 
 });

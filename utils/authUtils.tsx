@@ -23,7 +23,8 @@ const verifyEmail = (email: string) => {
     setLoginPopupVisible?: (v: boolean) => void,
     setEmail?: (email: string) => void,
     setPassword?: (password: string) => void,
-    loadInfoCallback?: () => Promise<boolean | undefined>
+    loadInfoCallback?: () => Promise<boolean | undefined>,
+    setEmailVerified?: (v: boolean) => void
 
 ) => {
 
@@ -50,6 +51,7 @@ const verifyEmail = (email: string) => {
       .then(async (response) => {
 
         await AsyncStorage.setItem('token', response.data.token);
+        setEmailVerified?.(true);
         setIsLogged?.(true);
 
         setAuthStatus?.('Login effettuato con successo!');
@@ -99,6 +101,7 @@ const verifyEmail = (email: string) => {
     setPassword: (password: string) => void,
     setPasswordConfirm: (password: string) => void,
     setTermsAccepted: (v: boolean) => void,
+    setEmailVerified: (v: boolean) => void,
     setRegisterPopupVisible: (v: boolean) => void,
     loadInfo: () => Promise<boolean | undefined>
     ): Promise<void> => {  
@@ -133,12 +136,12 @@ const verifyEmail = (email: string) => {
     }
 
     //verifica password
-    //!! if(!verifyPassword(password)) {
-    //   console.log('password non valida');
-    //   setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
-    //   setAuthColor('red');
-    //   return;
-    // }
+    if(!verifyPassword(password)) {
+      console.log('password non valida');
+      setAuthStatus('La password deve contenere almeno 10 caratteri, una lettera maiuscola, una minuscola, un numero e un carattere speciale.');
+      setAuthColor('red');
+      return;
+    }
 
     //verifica conferma password
     if(password !== passwordConfirm) {
@@ -161,13 +164,8 @@ const verifyEmail = (email: string) => {
       password: password,
     })
 
-    .then(async (response) => {
-      await AsyncStorage.setItem('token', response.data.token);
-      console.log(response.data);
-      console.log(await AsyncStorage.getItem('token'));
-      loadInfo();
-      setIsLogged(true);
-      // Svuota i campi dopo la registrazione
+    .then(() => {
+      setEmailVerified(false);
       setPassword('');
       setEmail('');
       setCognome('');
@@ -175,17 +173,13 @@ const verifyEmail = (email: string) => {
       setPasswordConfirm('');
       setTermsAccepted(false);
 
-      setAuthStatus('Login effettuato con successo!');
+      setAuthStatus('Registrazione completata. Controlla la mail per verificare l’account.');
       setAuthColor('green');
 
-      // nascondi il messaggio dopo 2 secondi e chiudi il popup
-      // setTimeout(() => {
-      //   setRegisterPopupVisible(false);
-      //   setAuthStatus(null);
-        
-      // }, 2000);
-      setRegisterPopupVisible(false);
-      setTimeout(() => otpBottomSheetRef.current?.open(), 200);
+      setTimeout(() => {
+        setRegisterPopupVisible(false);
+        setAuthStatus(null);
+      }, 2000);
     })
     .catch(error => {
       if (error.response && error.response.status === 409) {

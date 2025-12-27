@@ -12,6 +12,7 @@ const RegisterBottomSheet = forwardRef(
       registerUser,
       setIsLogged,
       setLoginPopupVisible,
+      setEmailVerified,
     },
     ref
   ) => {
@@ -184,6 +185,7 @@ const RegisterBottomSheet = forwardRef(
                     setPassword,
                     setPasswordConfirm,
                     setTermsAccepted,
+                    setEmailVerified,
                     () => sheetRef.current?.dismiss(),
                     loadInfo
                   );

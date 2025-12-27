@@ -7,7 +7,8 @@ const LoginBottomSheet = forwardRef(({
   loginUser,
   loadInfo,
   registerBottomSheetRef,
-  pswChangeBottomSheetRef
+  pswChangeBottomSheetRef,
+  setEmailVerified,
 }, ref) => {
 
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -118,7 +119,8 @@ const LoginBottomSheet = forwardRef(({
                 () => sheetRef.current?.dismiss(),
                 setEmail,
                 setPassword,
-                loadInfo
+                loadInfo,
+                setEmailVerified,
               );
             }}
           >
