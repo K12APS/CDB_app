@@ -97,13 +97,13 @@ export default function CalendarScreen() {
 
     
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#000' : '#f2f2f7' }} edges={['top', 'left', 'right']}>
              
             
         <ScrollView 
             contentContainerStyle={styles.scroll} 
             showsVerticalScrollIndicator={false} 
-            style={{ backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}
+            style={{ backgroundColor: isDark ? '#000' : '#f2f2f7' }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
             <HeaderBar title="Calendario" />
@@ -175,14 +175,14 @@ const styles = StyleSheet.create({
         flex: 1,
         //alignItems: 'center', //!rimosso per avere la card NextSeason allungate verso i bordi
         justifyContent: 'center',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#000',
         padding: 16,
     },
     containerLight: {
         flex: 1,
         //alignItems: 'center', //!rimosso per avere la card NextSeason allungate verso i bordi
         justifyContent: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f2f2f7',
         padding: 16,
     },
 

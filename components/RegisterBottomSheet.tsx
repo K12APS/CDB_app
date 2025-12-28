@@ -2,6 +2,7 @@ import React, { useState, forwardRef, useImperativeHandle, useRef } from "react"
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, useColorScheme } from "react-native";
 import { Checkbox } from "expo-checkbox";
 import { BottomSheetModal, BottomSheetView  } from "@gorhom/bottom-sheet";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const RegisterBottomSheet = forwardRef(
   (
@@ -24,8 +25,7 @@ const RegisterBottomSheet = forwardRef(
     const subtle = isDark ? "#3A3A3A" : "#EDEDED";
 
     // Inputs
-    const [nome, setNome] = useState("");
-    const [cognome, setCognome] = useState("");
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -34,6 +34,7 @@ const RegisterBottomSheet = forwardRef(
     // Auth state
     const [authStatus, setAuthStatus] = useState<string | null>(null);
     const [authColor, setAuthColor] = useState("red");
+    const [showPassword, setShowPassword] = useState(false);
 
     // expose open/close
     useImperativeHandle(ref, () => ({
@@ -43,8 +44,7 @@ const RegisterBottomSheet = forwardRef(
 
     const resetForm = () => {
       setAuthStatus(null);
-      setNome("");
-      setCognome("");
+      setUsername("");
       setEmail("");
       setPassword("");
       setPasswordConfirm("");
@@ -92,20 +92,10 @@ const RegisterBottomSheet = forwardRef(
             {/* INPUT */}
             <View style={[styles.inputContainer, { backgroundColor: subtle }]}>
               <TextInput
-                placeholder="Nome"
+                placeholder="Username"
                 placeholderTextColor={isDark ? "#AAA" : "#777"}
-                value={nome}
-                onChangeText={setNome}
-                style={[styles.input, { color: fg }]}
-              />
-            </View>
-
-            <View style={[styles.inputContainer, { backgroundColor: subtle }]}>
-              <TextInput
-                placeholder="Cognome"
-                placeholderTextColor={isDark ? "#AAA" : "#777"}
-                value={cognome}
-                onChangeText={setCognome}
+                value={username}
+                onChangeText={setUsername}
                 style={[styles.input, { color: fg }]}
               />
             </View>
@@ -125,23 +115,45 @@ const RegisterBottomSheet = forwardRef(
             <View style={[styles.inputContainer, { backgroundColor: subtle }]}>
               <TextInput
                 placeholder="Password"
+                secureTextEntry={!showPassword}
                 placeholderTextColor={isDark ? "#AAA" : "#777"}
-                secureTextEntry
                 value={password}
                 onChangeText={setPassword}
                 style={[styles.input, { color: fg }]}
               />
+
+              <TouchableOpacity
+                style={{ position: "absolute", right: 12, top: 12 }}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <MaterialCommunityIcons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={22}
+                  color="#777"
+                />
+              </TouchableOpacity>
             </View>
 
             <View style={[styles.inputContainer, { backgroundColor: subtle }]}>
               <TextInput
                 placeholder="Conferma Password"
+                secureTextEntry={!showPassword}
                 placeholderTextColor={isDark ? "#AAA" : "#777"}
-                secureTextEntry
                 value={passwordConfirm}
                 onChangeText={setPasswordConfirm}
                 style={[styles.input, { color: fg }]}
               />
+
+              <TouchableOpacity
+                style={{ position: "absolute", right: 12, top: 12 }}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <MaterialCommunityIcons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={22}
+                  color="#777"
+                />
+              </TouchableOpacity>
             </View>
 
             {/* CHECKBOX TERMIINI */}
@@ -170,8 +182,7 @@ const RegisterBottomSheet = forwardRef(
                 style={styles.primaryButton}
                 onPress={() => {
                   registerUser(
-                    nome,
-                    cognome,
+                    username,
                     email,
                     password,
                     passwordConfirm,
@@ -180,8 +191,7 @@ const RegisterBottomSheet = forwardRef(
                     setAuthStatus,
                     setAuthColor,
                     setEmail,
-                    setNome,
-                    setCognome,
+                    setUsername,
                     setPassword,
                     setPasswordConfirm,
                     setTermsAccepted,

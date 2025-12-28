@@ -64,8 +64,8 @@ export default function AboutScreen() {
         if (response.headers['x-new-token']) {
           await AsyncStorage.setItem('token', response.headers['x-new-token']);
         }
-        setUserName(response.data.user.nome);
-        await AsyncStorage.setItem('userName', response.data.user.nome);
+        setUserName(response.data.user.username);
+        await AsyncStorage.setItem('userName', response.data.user.username);
         return true;
       } catch (error) {
         console.error(error);
@@ -356,9 +356,9 @@ export default function AboutScreen() {
   // RENDER DELLA PAGINA
   return (
     <>
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#000' : '#f2f2f7' }} edges={['top', 'left', 'right']}>
       
-    <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }}> 
+    <ScreenContainer style={{ flex: 1, backgroundColor: isDark ? '#000' : '#f2f2f7' }}> 
       
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Screen style={{ flex: 1 }}> 
@@ -531,13 +531,13 @@ const styles = StyleSheet.create({
   },
   containerDark: {
       flex: 1,
-      backgroundColor: '#1E1E1E',
+      backgroundColor: '#000',
       padding: 16,
   },
 
   containerLight: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f2f2f7',
     padding: 16,
 },
 

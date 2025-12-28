@@ -41,6 +41,11 @@ export default function SettingsScreen() {
   const modalContentStyle = isDark ? styles.modalContentDark : styles.modalContentLight;
   const modalTitleStyle = isDark ? styles.modalTitleDark : styles.modalTitleLight;
   const modalTextStyle = isDark ? styles.modalTextDark : styles.modalTextLight;
+  const settingItem = isDark ? styles.settingItemDark : styles.settingItemLight;
+  const settingText = isDark ? styles.settingTextDark : styles.settingTextLight;
+  const accountItem = isDark ? styles.accountItemDark : styles.accountItemLight;
+  const accountBox = isDark ? styles.accountBoxDark : styles.accountBoxLight;
+  const separator = isDark ? styles.separatorDark : styles.separatorLight;
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -132,11 +137,11 @@ export default function SettingsScreen() {
           return false;
         }
 
-        if (response.headers['x-renewed-token']) {
-          await AsyncStorage.setItem('token', response.headers['x-renewed-token']);
+        if (response.headers['x-new-token']) {
+          await AsyncStorage.setItem('token', response.headers['x-new-token']);
         }
-        setUserName(response.data.user.nome);
-        await AsyncStorage.setItem('userName', response.data.user.nome);
+        setUserName(response.data.user.username);
+        await AsyncStorage.setItem('userName', response.data.user.username);
         return true;
       } catch (error) {
         console.error(error);
@@ -173,6 +178,7 @@ export default function SettingsScreen() {
       await AsyncStorage.removeItem('userName');
       setUserName('Accedi/registrati');
       setIsLogged(false);
+      setEmailVerified(true);
       setDeleteModalVisible(false);
       Alert.alert('Account eliminato', 'Il tuo account è stato eliminato con successo.');
     }
@@ -210,7 +216,7 @@ export default function SettingsScreen() {
   return (
     <>
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: isDark ? "#1E1E1E" : "#ffffff" }}
+      style={{ flex: 1, backgroundColor: isDark ? "#000" : "#f2f2f7" }}
       edges={["top", "left", "right"]}
     >
       <ScreenContainer style={{ flex: 1 }}>
@@ -234,51 +240,57 @@ export default function SettingsScreen() {
                 )}
 
                 <TouchableOpacity
-                  style={styles.settingItem}
+                  style={settingItem}
                   onPress={() => {
                     loginBottomSheetRef.current?.open()
                   }}
                 >
-                  <Text style={styles.settingText}>Accedi o Registrati</Text>
+                  <Text style={settingText}>Accedi o Registrati</Text>
                 </TouchableOpacity>
                 </>
               ) : (
                 <>
+                  <View style={accountBox}>
                   <TouchableOpacity
-                    style={styles.settingItem}
+                    style={accountItem}
                     onPress={() => setLogoutModalVisible(true)}
                   >
-                    <Text style={styles.settingText}>Esci dall’account</Text>
+                    <Text style={settingText}>Esci dall’account</Text>
                   </TouchableOpacity>
 
+                  <View style={separator} />
+
                   <TouchableOpacity
-                    style={styles.settingItem}
+                    style={accountItem}
+                    onPress={() =>
+                      passwordBottomSheetRef.current?.present()
+                    }
+                  >
+                    <Text style={settingText}>Cambia password</Text>
+                  </TouchableOpacity>
+
+                    <View style={separator} />
+
+                  <TouchableOpacity
+                    style={accountItem}
                     onPress={() => setDeleteModalVisible(true)}
                   >
-                    <Text style={[styles.settingText, { color: "red" }]}>
+                    <Text style={[settingText, { color: "red" }]}>
                       Elimina account
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.settingItem}
-                    onPress={() =>
-                      //Alert.alert("Prossimamente", "Funzione in sviluppo")
-                      passwordBottomSheetRef.current?.present()
-                    }
-                  >
-                    <Text style={styles.settingText}>Cambia password</Text>
-                  </TouchableOpacity>
+                </View>
                 </>
               )}
 
               <TouchableOpacity
-                style={styles.settingItem}
+                style={settingItem}
                 onPress={() =>
                   Alert.alert("Prossimamente", "Funzione in sviluppo")
                 }
               >
-                <Text style={styles.settingText}>Notifiche</Text>
+                <Text style={settingText}>Notifiche</Text>
               </TouchableOpacity>
 
               {/* MODALE LOGOUT */}
@@ -619,23 +631,34 @@ const styles = StyleSheet.create({
   },
   containerDark: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#000',
     padding: 16,
   },
   containerLight: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f2f2f7',
     padding: 16,
   },
-  settingItem: {
-    backgroundColor: '#f6f6f6',
+  settingItemDark: {
+    backgroundColor: '#1C1C1E',
     padding: 16,
     borderRadius: 20,
     marginBottom: 16,
   },
-  settingText: {
+  settingTextDark: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+  },
+    settingItemLight: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  settingTextLight: {
     color: '#000',
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Poppins-Regular',
   },
   modalContainer: {
@@ -777,6 +800,38 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
   },
 
-
-
+  accountBoxDark: {
+    backgroundColor: '#1C1C1E', 
+    borderRadius: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  accountItemDark: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  accountBoxLight: {
+    backgroundColor: '#fff', 
+    borderRadius: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  accountItemLight: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  separatorDark: {
+    height: 1,
+    backgroundColor: '#444', 
+    marginHorizontal: 0,
+    marginLeft: 20,
+    marginRight: 20,
+  },
+  separatorLight: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)', 
+    marginHorizontal: 0,
+    marginLeft: 20,
+    marginRight: 20,
+  },
 });

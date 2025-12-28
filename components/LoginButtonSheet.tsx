@@ -1,6 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, useColorScheme } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const LoginBottomSheet = forwardRef(({
   setIsLogged,
@@ -24,6 +25,7 @@ const LoginBottomSheet = forwardRef(({
   const [password, setPassword] = useState("");
   const [authStatus, setAuthStatus] = useState<string | null>(null);
   const [authColor, setAuthColor] = useState("red");
+  const [showPassword, setShowPassword] = useState(false);
 
   useImperativeHandle(ref, () => ({
     open: () => sheetRef.current?.present(),
@@ -86,10 +88,21 @@ const LoginBottomSheet = forwardRef(({
           <TextInput
             placeholder="Password"
             placeholderTextColor={isDark ? "#AAA" : "#777"}
-            secureTextEntry
+            secureTextEntry = {!showPassword}
             style={[styles.input, { color: fg }]}
             onChangeText={setPassword}
           />
+
+          <TouchableOpacity
+            style={{ position: "absolute", right: 12, top: 12 }}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <MaterialCommunityIcons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#777"
+            />
+          </TouchableOpacity>
         </View>
 
 

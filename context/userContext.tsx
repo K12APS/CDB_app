@@ -14,7 +14,7 @@ export const UserContext = createContext({
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [userName, setUserName] = useState('');
   const [isLogged, setIsLoggedState] = useState(false);
-  const [emailVerified, setEmailVerifiedState] = useState(null);
+  const [emailVerified, setEmailVerifiedState] = useState(true);
 
   const setIsLogged = async (value: boolean) => {
     setIsLoggedState(value);

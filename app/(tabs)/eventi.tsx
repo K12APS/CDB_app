@@ -156,7 +156,7 @@ export default function EventiScreen() {
 
   return (
     
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1E1E1E' : '#ffffff' }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#000' : '#f2f2f7' }} edges={['top', 'left', 'right']}>
       <StatusBar style={isDark ? 'light' : 'dark'}  />
     <ScrollView 
       contentContainerStyle={{
@@ -167,7 +167,7 @@ export default function EventiScreen() {
       }} 
       style={{ 
         flex: 1,
-        backgroundColor: isDark ? '#1E1E1E' : '#ffffff' 
+        backgroundColor: isDark ? '#000' : '#f2f2f7' 
       }}
     >
       <HeaderBar title="Biglietti" />
@@ -281,13 +281,13 @@ export default function EventiScreen() {
 const styles = StyleSheet.create({
   containerDark: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#000',
     padding: 16,
     position: 'relative', // Assicura il corretto posizionamento del bottone
   },
   containerLight: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f2f2f7',
     padding: 16,
     position: 'relative', // Assicura il corretto posizionamento del bottone
   },

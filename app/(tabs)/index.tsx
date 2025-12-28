@@ -386,13 +386,13 @@ export default function Index() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: isDark ? "#1E1E1E" : "#ffffff" }}
+      style={{ flex: 1, backgroundColor: isDark ? "#000" : "#f2f2f7" }}
       edges={["top", "left", "right"]}
     >
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        style={{ backgroundColor: isDark ? "#1E1E1E" : "#ffffff" }}
+        style={{ backgroundColor: isDark ? "#000" : "#f2f2f7" }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -618,14 +618,14 @@ const styles = StyleSheet.create({
   },
   containerDark: {
     flex: 1,
-    backgroundColor: "#1E1E1E",
+    backgroundColor: "#000",
     padding: 16,
     fontFamily: "Poppins-Regular",
   },
 
   containerLight: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f2f2f7",
     padding: 16,
     fontFamily: "Poppins-Regular",
   },

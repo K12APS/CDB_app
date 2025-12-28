@@ -130,14 +130,14 @@ const styles = StyleSheet.create({
     height: 50,
     fontFamily: "Poppins-SemiBold",
     justifyContent: "center",
-    backgroundColor: "#1E1E1E",
+    backgroundColor: "#000",
   },
   headerLight: {
     paddingLeft: 16,
     height: 50,
     fontFamily: "Poppins-SemiBold",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#f2f2f7",
   },
 
   headerTextDark: {
