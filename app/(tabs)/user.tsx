@@ -52,7 +52,7 @@ export default function AboutScreen() {
           return false;
         }
 
-        const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
+        const response = await axios.get('https://api.coderdojobrianza.it/loadInfo', {
           headers: { Authorization: `${token}` }
         });
 

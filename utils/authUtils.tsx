@@ -39,7 +39,7 @@ export const loginUser = async (
     }
 
     try {
-        axios.post('https://api.coderdojobrianza.it:3000/login', {
+        axios.post('https://api.coderdojobrianza.it/login', {
             email: email,
             password: password
         })
@@ -135,7 +135,7 @@ export const registerUser = async (
         return;
     }
 
-    axios.post('https://api.coderdojobrianza.it:3000/register', {
+    axios.post('https://api.coderdojobrianza.it/register', {
         username: username,
         email: email,
         password: password,

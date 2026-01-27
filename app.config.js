@@ -4,7 +4,7 @@ export default {
   "expo": {
     "name": "CDBapp",
     "slug": "cdb-app",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "orientation": "portrait",
     "icon": "./assets/images/IconaSplash.png",
     "scheme": "myapp",
@@ -80,6 +80,6 @@ export default {
     "updates": {
       "url": "https://u.expo.dev/e41939e9-743d-40da-9092-578723f1d31c"
     },
-    "owner": "coderdojobza"
+    "owner": "coderdojobrianza"
   }
 };

@@ -50,7 +50,7 @@ const PasswordChangeBottomSheet = forwardRef(({
 
     try {
 
-        const response = await axios.post('https://api.coderdojobrianza.it:3000/requestPasswordResetEmail', {
+        const response = await axios.post('https://api.coderdojobrianza.it/requestPasswordResetEmail', {
             email: email
         });
         

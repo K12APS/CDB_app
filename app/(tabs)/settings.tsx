@@ -93,7 +93,7 @@ export default function SettingsScreen() {
     }
 
     try {
-      const response = await axios.post('https://api.coderdojobrianza.it:3000/requestPasswordChange', 
+      const response = await axios.post('https://api.coderdojobrianza.it/requestPasswordChange', 
         {oldPassword, newPassword}, 
         {headers: { Authorization: `${token}` }
       });
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
           return false;
         }
 
-        const response = await axios.get('https://api.coderdojobrianza.it:3000/loadInfo', {
+        const response = await axios.get('https://api.coderdojobrianza.it/loadInfo', {
           headers: { Authorization: `${token}` }
         });
 
@@ -166,7 +166,7 @@ export default function SettingsScreen() {
     const token = await AsyncStorage.getItem('token');
 
     const res = await axios.delete(
-      'https://api.coderdojobrianza.it:3000/deleteAccount',
+      'https://api.coderdojobrianza.it/deleteAccount',
       {
         headers: { Authorization: token }
       }
